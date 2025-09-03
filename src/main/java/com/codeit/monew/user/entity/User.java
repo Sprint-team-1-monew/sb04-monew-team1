@@ -16,7 +16,6 @@ import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -51,14 +50,14 @@ public class User extends BaseUpdatableEntity {
   private LocalDateTime deletedAt;
 
   @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Subscription> subscriptions = new ArrayList<>();
+  private List<Subscription> subscriptions;
 
   @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<Comment> comments = new ArrayList<>();
+  private List<Comment> comments;
 
   @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<CommentLike> commentLikes = new ArrayList<>();
+  private List<CommentLike> commentLikes;
 
   @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
-  private List<ArticlesViewUser> articlesViewUsers = new ArrayList<>();
+  private List<ArticlesViewUser> articlesViewUsers;
 }
