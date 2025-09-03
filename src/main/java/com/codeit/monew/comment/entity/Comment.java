@@ -30,6 +30,7 @@ public class Comment extends BaseEntity {
   @Column(name = "deleted", nullable = false)
   private Boolean deleted;
 
+  @Builder.Default
   @Column(name = "like_count", nullable = false)
   private int likeCount = 0;
 
