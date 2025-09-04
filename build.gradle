@@ -2,6 +2,7 @@ plugins {
     id 'java'
     id 'org.springframework.boot' version '3.4.9'
     id 'io.spring.dependency-management' version '1.1.7'
+    id 'jacoco' // jacoco 추가
 }
 
 group = 'com.codeit'
@@ -50,4 +51,32 @@ dependencies {
 
 tasks.named('test') {
     useJUnitPlatform()
+    finalizedBy jacocoTestReport, jacocoTestCoverageVerification // jacoco Test 추가
+}
+
+// jacoco 추가
+jacoco {
+    toolVersion = "0.8.12"
+}
+
+// jacocoTestReport 추가
+jacocoTestReport {
+    dependsOn test
+    reports {
+        xml.required = true // CI에서 파싱하기 위함
+        html.required = true // 보기 편하게 추가
+    }
+}
+
+// jacocoTestCoverageVerification 추가
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.80 // 80% 미만이면 실패함
+            }
+        }
+    }
 }
