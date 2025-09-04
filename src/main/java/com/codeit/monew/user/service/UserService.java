@@ -32,7 +32,7 @@ public class UserService {
 
   private void validateEmailDoesNotExist(String email) {
     if (userRepository.existsByEmail(email)) {
-      throw new UserEmailDuplicatedException(UserErrorCode.USER_EMAIL_DUPLICATED_EXCEPTION, email);
+      throw new UserEmailDuplicatedException(UserErrorCode.USER_EMAIL_DUPLICATED, email);
     }
   }
 
