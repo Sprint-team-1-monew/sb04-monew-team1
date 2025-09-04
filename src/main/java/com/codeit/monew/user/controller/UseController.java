@@ -8,18 +8,19 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/users")
 @RequiredArgsConstructor
 public class UseController {
 
   private final UserService userService;
 
   @PostMapping
-  public ResponseEntity<UserDto> registerUser(@Valid UserRegisterRequest userRegisterRequest) {
+  public ResponseEntity<UserDto> registerUser(@Valid @RequestBody UserRegisterRequest userRegisterRequest) {
     return ResponseEntity.status(HttpStatus.CREATED).body(userService.registerUser(userRegisterRequest));
   }
 }
