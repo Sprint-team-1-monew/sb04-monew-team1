@@ -3,9 +3,7 @@ package com.codeit.monew.comment.controller;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
 import com.codeit.monew.comment.service.CommentService;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,18 +15,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/comments")
 @RequiredArgsConstructor
-@Slf4j
 public class CommentController {
 
-  private final CommentService commentService;
+  private CommentService commentService;
 
   @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<CommentDto> createComment(
-      @RequestBody @Valid CommentRegisterRequest commentRegisterRequest) {
-    log.info("댓글 등록 요청 : {}", commentRegisterRequest);
+      @RequestBody CommentRegisterRequest commentRegisterRequest) {
+
     CommentDto create = commentService.createComment(commentRegisterRequest);
 
-    log.debug("댓글 등록 응답 : {}", create);
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(create);
