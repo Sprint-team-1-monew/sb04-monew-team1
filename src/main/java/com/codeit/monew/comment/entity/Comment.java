@@ -34,7 +34,7 @@ public class Comment extends BaseEntity {
   @Column(name = "like_count", nullable = false)
   private int likeCount = 0;
 
-  @Column(name = "deleted_at", updatable = false, nullable = false)
+  @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
   @ManyToOne(fetch = FetchType.LAZY)

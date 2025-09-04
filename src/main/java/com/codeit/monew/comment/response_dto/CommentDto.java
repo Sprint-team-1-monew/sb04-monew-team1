@@ -6,7 +6,7 @@ import java.util.UUID;
 public record CommentDto (
     UUID commentId,
     UUID articleId,
-    Long userId,
+    UUID userId,
     String userNickname,
     String content,
     Long likeCount,
