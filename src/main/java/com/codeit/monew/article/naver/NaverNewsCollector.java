@@ -36,6 +36,7 @@ public class NaverNewsCollector {
   private final KeywordRepository keywordRepository;
 
   public NaverNewsResponse searchNews(String interestName, Integer display, Integer start, String sort) {
+    log.info("네이버 API 요청 : {}", interestName);
     return webClient.get()
         .uri(uriBuilder -> uriBuilder
             .path("/v1/search/news.json")
@@ -63,6 +64,7 @@ public class NaverNewsCollector {
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
   @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")// 매 분 마다
   public void fetchAndSaveHourly() {
+    log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     int display = 10;
     int start = 1;
     String sort = "date";
@@ -93,6 +95,7 @@ public class NaverNewsCollector {
         if (start > 1000) break; // 네이버 최대 start 보호
       }
     }
+    log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
   }
   private Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
 
@@ -129,13 +132,16 @@ public class NaverNewsCollector {
   }
 
   private boolean duplicateArticle (Article article) {
+    log.info("네이버 기사 중복 검사 시작: {}", article.getSourceUrl());
     Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
     if (articleOptional.isPresent()) {
+      log.info("네이버 기사 중복 검사 발견: {}", article.getSourceUrl());
       return true;
       /*Map<String, Object> details = new HashMap<>();
       details.put("이유: ", "기사가 중복 됨");
       throw new ArticleDuplicateException(details);*/
     }
+    log.info("네이버 기사 중복 검사 종료: {}", article.getSourceUrl());
     return false;
   }
 }
