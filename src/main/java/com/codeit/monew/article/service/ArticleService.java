@@ -21,12 +21,19 @@ public class ArticleService {
     this.articleRepository = articleRepository;
   }
 
-  public void deleteArticle(UUID articleId) {
-    log.info("기사 삭제 시작 {}", articleId);
+  public void softDeleteArticle(UUID articleId) {
+    log.info("기사 논리 삭제 시작 {}", articleId);
     Article checkedArticle =  checkArticle(articleId);
     checkedArticle.setDeleted(true);
     articleRepository.save(checkedArticle);
-    log.info("기사 삭제 완료 {}", articleId);
+    log.info("기사 논리 삭제 완료 {}", articleId);
+  }
+
+  public void hardDeleteArticle(UUID articleId) {
+    log.info("기사 물리 삭제 시작 {}", articleId);
+    Article checkedArticle =  checkArticle(articleId);
+    articleRepository.delete(checkedArticle);
+    log.info("기사 물리 삭제 완료 {}", articleId);
   }
 
   private Article checkArticle(UUID articleId) {

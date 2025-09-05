@@ -22,9 +22,17 @@ public class ArticleController {
   private final ArticleService articleService;
 
   @DeleteMapping("/{articleId}")
-  public ResponseEntity<?> deleteArticle(@PathVariable("articleId") String articleId) {
+  public ResponseEntity<?> softDeleteArticle(@PathVariable("articleId") String articleId) {
+    log.info("기사 논리 삭제 요청 시작 {}", articleId);
+    articleService.softDeleteArticle(UUID.fromString(articleId));
+    log.info("기사 논리 삭제 요청 완료 {}", articleId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping("/{articleId}/hard")
+  public ResponseEntity<?> hardDeleteArticle(@PathVariable("articleId") String articleId) {
     log.info("기사 삭제 요청 시작 {}", articleId);
-    articleService.deleteArticle(UUID.fromString(articleId));
+    articleService.hardDeleteArticle(UUID.fromString(articleId));
     log.info("기사 삭제 요청 완료 {}", articleId);
     return ResponseEntity.noContent().build();
   }
