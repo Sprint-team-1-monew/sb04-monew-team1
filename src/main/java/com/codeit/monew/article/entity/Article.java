@@ -14,13 +14,13 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import lombok.Setter;
 
 @Entity
 @Table(name = "Article")
 @Getter
-@SuperBuilder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Builder
+@NoArgsConstructor()
 @AllArgsConstructor()
 public class Article extends BaseEntity {
 
@@ -45,6 +45,7 @@ public class Article extends BaseEntity {
   @Column(name = "article_view_count", nullable = false)
   private long articleViewCount;
 
+  @Setter()
   @Column(name = "deleted", nullable = false)
   private boolean deleted;
 
