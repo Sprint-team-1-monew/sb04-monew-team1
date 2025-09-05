@@ -1,0 +1,142 @@
+package com.codeit.monew.notification;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+
+import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.comment.entity.Comment;
+import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.interest.entity.Interest;
+import com.codeit.monew.interest.repository.InterestRepository;
+import com.codeit.monew.notification.entity.Notification;
+import com.codeit.monew.notification.entity.ResourceType;
+import com.codeit.monew.notification.repository.NotificationRepository;
+import com.codeit.monew.notification.service.NotificationService;
+import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.repository.UserRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
+
+@ExtendWith(MockitoExtension.class)
+public class NotificationServiceTest {
+
+  @Mock
+  private NotificationRepository notificationRepository;
+
+  @Mock
+  private UserRepository userRepository;
+
+  @Mock
+  private InterestRepository interestRepository;
+
+  @Mock
+  private CommentRepository commentRepository;
+
+  @InjectMocks
+  private NotificationService notificationService;
+
+  @Test
+  void createInterestNotification_success(){
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID interestId = UUID.randomUUID();
+    int articleCount = 3;
+
+    User user = User.builder()
+        .email("test@example.com")
+        .nickname("테스터")
+        .password("password")
+        .build();
+
+    Interest interest = Interest.builder()
+        .name("경제")
+        .build();
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(interestRepository.findById(interestId)).willReturn(Optional.of(interest));
+
+    Notification notification = Notification.builder()
+        .user(user)
+        .confirmed(false)
+        .content("[경제]와 관련된 기사가 3건 등록되었습니다.")
+        .resourceType(ResourceType.INTEREST)
+        .resourceId(interestId)
+        .build();
+
+    given(notificationRepository.save(any(Notification.class))).willReturn(notification);
+
+    // when
+    Notification result = notificationService.createInterestArticleNotification(userId, interestId, articleCount);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).isEqualTo("[경제]와 관련된 기사가 3건 등록되었습니다.");
+    assertThat(result.isConfirmed()).isFalse();
+    assertThat(result.getResourceType()).isEqualTo(ResourceType.INTEREST);
+    assertThat(result.getResourceId()).isEqualTo(interestId);
+  }
+
+  @Test
+  void createCommentLikeNotification_success(){
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID commentId = UUID.randomUUID();
+    UUID likeByUserId = UUID.randomUUID();
+
+    User user = User.builder()
+        .email("author@test.com")
+        .nickname("작성자")
+        .password("password")
+        .build();
+    ReflectionTestUtils.setField(user, "id", userId);
+
+    User likeByUser = User.builder()
+        .email("liker@test.com")
+        .nickname("좋아요누른사람")
+        .password("password")
+        .build();
+    ReflectionTestUtils.setField(likeByUser, "id", likeByUserId);
+
+    Comment comment = Comment.builder()
+        .content("댓글")
+        .deleted(false)
+        .likeCount(0)
+        .user(user)
+        .article(mock(Article.class))
+        .build();
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(userRepository.findById(likeByUserId)).willReturn(Optional.of(likeByUser));
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+    Notification notification = Notification.builder()
+        .user(user)
+        .confirmed(false)
+        .content("[좋아요누른사람]님이 나의 댓글을 좋아합니다.")
+        .resourceType(ResourceType.COMMENT)
+        .resourceId(commentId)
+        .build();
+
+    given(notificationRepository.save(any(Notification.class))).willReturn(notification);
+
+    // when
+    Notification result = notificationService.createCommentLikeNotification(userId, commentId, likeByUserId);
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.getUser().getId()).isEqualTo(userId);
+    assertThat(result.getResourceId()).isEqualTo(commentId);
+    assertThat(result.getResourceType()).isEqualTo(ResourceType.COMMENT);
+    assertThat(result.getContent()).isEqualTo("[좋아요누른사람]님이 나의 댓글을 좋아합니다.");
+  }
+}
