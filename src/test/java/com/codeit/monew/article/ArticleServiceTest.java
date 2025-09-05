@@ -8,6 +8,9 @@ import static org.mockito.Mockito.never;
 
 import com.codeit.monew.article.service.ArticleService;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
+import com.codeit.monew.interest.entity.Interest;
+import jakarta.persistence.criteria.CriteriaBuilder.In;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,7 +22,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-// 서비스 클래스명을 실제 코드에 맞게 바꿔주세요 (예: ArticleService)
+import static org.mockito.ArgumentMatchers.any;
+
 @ExtendWith(MockitoExtension.class)
 class ArticleServiceTest {
 
@@ -30,8 +34,8 @@ class ArticleServiceTest {
   ArticleService service; // 실제 서비스 클래스명으로 변경
 
   @Test
-  @DisplayName("deleteArticle: 존재하는 기사면 deleted=true 로 설정 후 저장한다")
-  void deleteArticle_marksDeleted_andSaves() {
+  @DisplayName("기사 논리 삭제")
+  void softDeleteArticle_marksDeleted_andSaves() {
     // Given
     UUID id = UUID.randomUUID();
     Article article = Article.builder()
@@ -40,12 +44,46 @@ class ArticleServiceTest {
     given(articleRepository.findById(id)).willReturn(Optional.of(article));
 
     // When
-    service.deleteArticle(id);
+    service.softDeleteArticle(id);
 
     // Then
     assertThat(article.isDeleted()).isTrue();
     then(articleRepository).should().findById(id);
     then(articleRepository).should().save(article);
+  }
+
+  @Test
+  @DisplayName("기사 물리 삭제")
+  void hardDeleteArticle_marksDeleted_andSaves() {
+    // Given
+    UUID id = UUID.randomUUID();
+    Interest interest = Interest.builder().name("test").subCount(0).build();
+    Article article = Article.builder()
+        .source("NAVER")
+        .sourceUrl("https://example.com")
+        .articleTitle("네이버 뉴스 제목")
+        .articlePublishDate(LocalDateTime.now())
+        .articleSummary("뉴스 요약")
+        .articleCommentCount(0L)
+        .articleViewCount(0L)
+        .deleted(false)
+        .interest(interest)
+        .build();
+
+    given(articleRepository.save(any(Article.class)))
+        .willAnswer(inv -> inv.getArgument(0));
+
+    given(articleRepository.findById(id))
+        .willReturn(Optional.of(article));
+    Article saved = articleRepository.save(article);
+
+    // When
+    service.hardDeleteArticle(id);
+
+    // Then: 삭제 로직이 delete(...)를 호출했는지 검증
+    then(articleRepository).should().delete(article);
+    then(articleRepository).should().findById(id);
+    then(articleRepository).shouldHaveNoMoreInteractions();
   }
 
   @Test
@@ -56,7 +94,7 @@ class ArticleServiceTest {
     given(articleRepository.findById(id)).willReturn(Optional.empty());
 
     // When / Then
-    assertThatThrownBy(() -> service.deleteArticle(id))
+    assertThatThrownBy(() -> service.softDeleteArticle(id))
         .isInstanceOf(ArticleNotFoundException.class);
 
     then(articleRepository).should().findById(id);
