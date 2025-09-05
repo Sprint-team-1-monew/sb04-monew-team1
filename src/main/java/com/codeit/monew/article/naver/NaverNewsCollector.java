@@ -1,23 +1,17 @@
-package com.codeit.monew.article.service;
+package com.codeit.monew.article.naver;
 
 import com.codeit.monew.article.entity.Article;
-import com.codeit.monew.article.naver.NaverNewsItem;
-import com.codeit.monew.article.naver.NaverNewsResponse;
 import com.codeit.monew.article.repository.ArticleRepository;
-import com.codeit.monew.exception.article.ArticleDuplicateException;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.entity.Keyword;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
-import java.security.Key;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -34,20 +28,12 @@ import reactor.util.retry.Retry;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class NaverNewsService {
+public class NaverNewsCollector {
 
   private final WebClient webClient;
   private final ArticleRepository articleRepository;
   private final InterestRepository interestRepository;
   private final KeywordRepository keywordRepository;
-
-  private static final DateTimeFormatter NAVER_DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
-
-
-  private LocalDateTime convertToLocalDateTime(String pubDate) {
-    return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
-  }
 
   public NaverNewsResponse searchNews(String interestName, Integer display, Integer start, String sort) {
     return webClient.get()
@@ -70,49 +56,16 @@ public class NaverNewsService {
                     w.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS)
                 .transientErrors(true)
         )
-
         .block();
-  }
-
-  private Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
-    
-    List<Keyword> keywords = keywordRepository.findByInterest(interest);
-
-    String description = item.description();
-
-    for (Keyword keyword : keywords) {
-      String word = keyword.getKeyword();
-      if (word != null && !word.isBlank()) {
-        description = description.replaceAll("(?i)" + Pattern.quote(word),
-            "<b>" + word + "</b>");
-      }
-    }
-
-    return Article.builder()
-        .source("Naver")
-        .sourceUrl(item.originallink())             // 뉴스 원문 URL
-        .articleTitle(item.title())                 // 뉴스 제목
-        .articlePublishDate(convertToLocalDateTime(item.pubDate())) // pubDate 문자열 → LocalDateTime
-        .articleSummary(description)
-        .articleCommentCount(0)
-        .articleViewCount(0)
-        .deleted(false)
-        .interest(interest)
-        .build();
   }
 
   @Transactional
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
-  @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
+  @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")// 매 분 마다
   public void fetchAndSaveHourly() {
     int display = 10;
     int start = 1;
     String sort = "date";
-
-    Interest exampleInterest = Interest.builder().name("스포츠").subCount(1).deletedAt(false).build();
-    exampleInterest = interestRepository.save(exampleInterest);
-    Keyword keyword = Keyword.builder().keyword("축구").deletedAt(false).interest(exampleInterest).build();
-    keyword = keywordRepository.save(keyword);
 
     List<Interest> interests = interestRepository.findAll();
     // 모든 관심사를 가져옴
@@ -140,7 +93,39 @@ public class NaverNewsService {
         if (start > 1000) break; // 네이버 최대 start 보호
       }
     }
-    printArticle();
+  }
+  private Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
+
+    List<Keyword> keywords = keywordRepository.findByInterest(interest);
+
+    String description = item.description();
+
+    for (Keyword keyword : keywords) {
+      String word = keyword.getKeyword();
+      if (word != null && !word.isBlank()) {
+        description = description.replaceAll("(?i)" + Pattern.quote(word),
+            "<b>" + word + "</b>");
+      }
+    }
+
+    return Article.builder()
+        .source("Naver")
+        .sourceUrl(item.originallink())             // 뉴스 원문 URL
+        .articleTitle(item.title())                 // 뉴스 제목
+        .articlePublishDate(convertToLocalDateTime(item.pubDate())) // pubDate 문자열 → LocalDateTime
+        .articleSummary(description)
+        .articleCommentCount(0)
+        .articleViewCount(0)
+        .deleted(false)
+        .interest(interest)
+        .build();
+  }
+  private static final DateTimeFormatter NAVER_DATE_FORMATTER =
+      DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
+
+
+  private LocalDateTime convertToLocalDateTime(String pubDate) {
+    return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
   }
 
   private boolean duplicateArticle (Article article) {
@@ -152,10 +137,5 @@ public class NaverNewsService {
       throw new ArticleDuplicateException(details);*/
     }
     return false;
-  }
-
-  private void printArticle() {
-    List<Article> articles = articleRepository.findAll();
-    System.out.println(articles.size());
   }
 }
