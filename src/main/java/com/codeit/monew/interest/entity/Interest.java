@@ -21,7 +21,7 @@ public class Interest extends BaseUpdatableEntity {
   @Column(name = "name", nullable = false)
   private String name;
 
-  @Column(name = "subscriberCount", nullable = false)
+  @Column(name = "subscriber_count", nullable = false)
   private Integer subscriberCount;
 
   @Column(name = "deleted_at")
