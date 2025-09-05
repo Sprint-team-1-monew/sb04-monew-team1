@@ -12,8 +12,10 @@ import com.codeit.monew.user.entity.UserStatus;
 import com.codeit.monew.user.mapper.UserMapper;
 import com.codeit.monew.user.repository.UserRepository;
 import com.codeit.monew.user.request.UserRegisterRequest;
+import com.codeit.monew.user.request.UserUpdateRequest;
 import com.codeit.monew.user.response_dto.UserDto;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
@@ -68,6 +70,26 @@ public class UserServiceTest {
     //then
     assertThat(userResponse).isEqualTo(userDto);
     then(userRepository).should(times(1)).save(any(User.class));
+  }
+
+  @Test
+  @DisplayName("사용자 닉네임 수정에 성공한다")
+  void updateUserNickname_Success() {
+    //given
+    UserUpdateRequest userUpdateRequest = new UserUpdateRequest("updateNickname");
+    UserDto updateResponse = new UserDto(userId.toString(), "email@email.com", "updateNickname", LocalDateTime.now());
+    given(userRepository.findById(any(UUID.class))).willReturn(Optional.of(user));
+    given(userRepository.save(any(User.class))).willReturn(user);
+    given(userMapper.toDto(user)).willReturn(updateResponse);
+
+    //when
+    UserDto userResponse = userService.updateUser(userId, userUpdateRequest);
+
+    //then
+    assertThat(userResponse).isEqualTo(updateResponse);
+    then(userRepository).should(times(1)).findById(any(UUID.class));
+    then(userRepository).should(times(1)).save(any(User.class));
+
   }
 
   private static User createUser() {
