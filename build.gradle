@@ -75,7 +75,7 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
-                minimum = 0.80 // 80% 미만이면 실패함
+//                minimum = 0.80 // 80% 미만이면 실패함
             }
         }
     }

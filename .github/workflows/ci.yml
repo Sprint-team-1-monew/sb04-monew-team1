@@ -29,7 +29,7 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Run tests with coverage (fails if coverage < 80%)
+      - name: Run tests without coverage
         run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --no-daemon
 
       - name: Upload coverage report (HTML)
