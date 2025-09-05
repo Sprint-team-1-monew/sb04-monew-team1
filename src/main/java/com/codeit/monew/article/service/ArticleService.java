@@ -41,5 +41,4 @@ public class ArticleService {
     log.info("기사 존재 검증 완료 {}", articleId);
     return articleOptional.get();
   }
-
 }
