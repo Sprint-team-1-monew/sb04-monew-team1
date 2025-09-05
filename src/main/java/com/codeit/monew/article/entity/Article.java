@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "Article")
 @Getter
 @Builder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor()
 @AllArgsConstructor()
 public class Article extends BaseEntity {
 
@@ -43,9 +43,6 @@ public class Article extends BaseEntity {
 
   @Column(name = "article_view_count", nullable = false)
   private long articleViewCount;
-
-  @Column(name = "createdAt", nullable = false)
-  private LocalDateTime createdAt;
 
   @Column(name = "deleted", nullable = false)
   private boolean deleted;
