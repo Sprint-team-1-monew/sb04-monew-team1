@@ -38,7 +38,7 @@ public class UserService {
 
   public UserDto updateUser(UUID userId, UserUpdateRequest userUpdateRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_EXIST, Map.of("userId", userId)));
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
     Optional.ofNullable(userUpdateRequest.nickname()).ifPresent(user::updateNickname);
     return userMapper.toDto(userRepository.save(user));
