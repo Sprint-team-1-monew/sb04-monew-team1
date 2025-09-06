@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(name = "Article")
 @Getter
 @Builder
-@NoArgsConstructor()
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor()
 public class Article extends BaseEntity {
 

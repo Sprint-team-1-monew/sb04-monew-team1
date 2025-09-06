@@ -78,7 +78,7 @@ public class NaverNewsCollector {
         NaverNewsResponse naverNewsResponse = searchNews(interest.getName(), display, start, sort);
         for (NaverNewsItem naverNewsItem : naverNewsResponse.items()) {
           Article article = buildArticleFromNaverItem(naverNewsItem, interest);
-          if(duplicateArticle(article)){
+          if(isArticleDuplicated(article)){
             continue; // 중복 되었으니 해당 아이템을 넘기고 다음 아이템으로
           }
           articleRepository.save(article);
@@ -131,7 +131,7 @@ public class NaverNewsCollector {
     return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
   }
 
-  private boolean duplicateArticle (Article article) {
+  private boolean isArticleDuplicated(Article article) {
     log.info("네이버 기사 중복 검사 시작: {}", article.getSourceUrl());
     Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
     if (articleOptional.isPresent()) {
