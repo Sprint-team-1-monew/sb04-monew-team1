@@ -188,14 +188,14 @@ class NaverNewsCollectorTest {
 
   @Test
   @DisplayName("중복 기사 존재: findBySourceUrl가 값을 반환하면 true")
-  void duplicateArticle_returnsTrue_whenExists() throws Exception {
+  void isArticle_Duplicated_returnsTrue_whenExists() throws Exception {
     // given
     String url = "https://origin1.example/news/123";
     Article article = Mockito.mock(Article.class);
     when(article.getSourceUrl()).thenReturn(url);
 
     when(articleRepository.findBySourceUrl(url))
-        .thenReturn(Optional.of(new Article())); // 존재한다고 가정
+        .thenReturn(Optional.of(article)); // 존재한다고 가정
 
     // when
     boolean dup = invokeDuplicate(article);
@@ -207,7 +207,7 @@ class NaverNewsCollectorTest {
 
   @Test
   @DisplayName("중복 기사 없음: findBySourceUrl가 empty이면 false")
-  void duplicateArticle_returnsFalse_whenNotExists() throws Exception {
+  void isArticle_Duplicated_returnsFalse_whenNotExists() throws Exception {
     // given
     String url = "https://origin2.example/news/999";
     Article article = Mockito.mock(Article.class);
