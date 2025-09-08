@@ -6,6 +6,9 @@ on:
   pull_request:
     branches: [dev, main] # dev, main 브랜치에 pull request 될 때 실행됨
     paths-ignore: ["README.md", "**/*.md"]
+#  push:
+#    branches: [dev, main] # dev, main 브랜치에 push될 때 실행됨
+#    paths-ignore: ["README.md", "**/*.md"]
 
 jobs:
   test:
@@ -67,3 +70,44 @@ jobs:
             - **CoverageLine(커버리지_라인)** ${{ steps.coverage.outputs.pct }}% (${{ steps.coverage.outputs.covered }} / ${{ steps.coverage.outputs.total }})
             - **Missed(커버리지_수치)** ${{ steps.coverage.outputs.missed }}
             - [HTML 리포트](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) (Artifact) 확인하기
+            
+
+# ECR에 업로드하기
+      # 1. AWS에 로그인하기, Access Key, Secret Key, Region, Json
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+#          default-output-format: json
+
+      # 2. AWS public ECR에 로그인하기, ECR은 무조건 us-east-1을 통해 로그인한다
+      - name: Login AWS Public ECR
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+          | docker login --username AWS --password-stdin public.ecr.aws
+
+      # 3. --platform linux/amd64,linux/arm64 에서 다른 아키텍처 이미지 빌드(arm64)를 위한 에뮬레이터를 Git Actions에 설치
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      # 4. buildx를 Github Actions에 실행시키기, 마찬가지로 --platform linux/amd64,linux/arm64 를 실행시키기 위함
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 5. 최신버전의 구분을 위해 태그를 추가함
+      # 이를 통해 버전 구분과 롤백 가능(docker pull)
+      - name: tag making(SHA)
+        id: shatag
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      # 빌드 & 푸시 : 이미지명은 같게, 태그로 최신버전 구분
+      # 6. Pull Request에 대한 Docker image를 빌드하기, docker/build-push-action을 사용함
+      - name: Build Docker image and push
+        run: |
+          docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          -t public.ecr.aws/w7n1o6b8/monew:latest \
+          -t public.ecr.aws/w7n1o6b8/monew:${{ steps.shatag.outputs.SHORT_SHA }} \
+          --push .
