@@ -2,6 +2,8 @@ package com.codeit.monew.notification.service;
 
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.exception.notification.NotificationErrorCode;
+import com.codeit.monew.exception.notification.NotificationException;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
@@ -13,6 +15,7 @@ import com.codeit.monew.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -81,7 +84,39 @@ public class NotificationService {
   }
 
   public Notification confirmNotification(UUID userId, UUID notificationId) {
-    return null;
+
+    if (userId == null || notificationId == null) {
+      throw new NotificationException(
+          NotificationErrorCode.INVALID_REQUEST,
+          Map.of("userId", userId != null ? userId : "null", "notificationId", notificationId != null ? notificationId : "null")
+      );
+    }
+
+    try {
+      Notification notification = notificationRepository.findById(notificationId)
+          .orElseThrow(() -> new NotificationException(
+              NotificationErrorCode.NOTIFICATION_NOT_FOUND,
+              Map.of("notificationId", notificationId)
+          ));
+
+      if (!notification.getUser().getId().equals(userId)) {
+        throw new NotificationException(
+            NotificationErrorCode.NOT_OWNER,
+            Map.of("userId", userId, "notificationUserId", notification.getUser().getId())
+        );
+      }
+
+      notification.setConfirmed(true);
+      return notificationRepository.save(notification);
+
+    } catch (NotificationException ne) {
+      throw ne;
+    } catch (Exception e) {
+      throw new NotificationException(
+          NotificationErrorCode.INTERNAL_ERROR,
+          Map.of("message", e.getMessage())
+      );
+    }
   }
 
   public void confirmAllNotifications(UUID userId) {
