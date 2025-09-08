@@ -25,6 +25,17 @@ public class GlobalExceptionHandler {
     return ResponseEntity.status(errorResponse.status()).body(errorResponse);
   }
 
+  @ExceptionHandler(MoNewException.class)
+  public ResponseEntity<ErrorResponse> handleMoNewException(MoNewException e) {
+    log.error(e.getMessage(), e);
+
+    ErrorResponse errorResponse = new ErrorResponse(e.getTimestamp(), e.getErrorCode().getName(),
+        e.getErrorCode().getMessage(), e.getDetails(), e.getClass().getSimpleName(),
+        e.getErrorCode().getStatus());
+
+    return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
+  }
+  
   @ExceptionHandler(ArticleException.class)
   public ResponseEntity<ErrorResponse> handleArticleException(ArticleException e) {
     ErrorResponse errorResponse = new ErrorResponse(
@@ -36,6 +47,7 @@ public class GlobalExceptionHandler {
         e.getErrorCode().getStatus()
     );
     return ResponseEntity.status(errorResponse.status()).body(errorResponse);
+
   }
 
   @ExceptionHandler(RuntimeException.class)

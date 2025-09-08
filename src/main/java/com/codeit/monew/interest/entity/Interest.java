@@ -18,11 +18,12 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 public class Interest extends BaseUpdatableEntity {
+
   @Column(name = "name", nullable = false)
   private String name;
 
-  @Column(name = "sub_count", nullable = false)
-  private Integer subCount ;
+  @Column(name = "subscriber_count", nullable = false)
+  private Integer subscriberCount;
 
   @Column(name = "deleted_at")
   private Boolean deletedAt;
