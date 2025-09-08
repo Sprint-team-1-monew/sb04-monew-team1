@@ -9,9 +9,12 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -55,30 +58,44 @@ public class InterestService {
     return interestMapper.toDto(savedInterest, keywords, false);
   }
 
-//  @Transactional(readOnly = true)
-//  public CursorPageResponseInterestDto searchInterests(
-//      String keyword,
-//      String orderBy,
-//      String direction,
-//      String cursor,
-//      LocalDateTime after,
-//      int limit,
-//      UUID requestUserId
-//  ) {
-//    List<Interest> interests = interestRepository.searchInterests(
-//        keyword, orderBy, direction, cursor, after, limit
-//    );
-//
-//    List<InterestDto> content = interests.stream()
-//        .map(interest -> interestMapper.toDto(interest, interest.get))
-//        .toList();
-//
-//    // 다음 페이지 커서 설정 (마지막 요소 기준)
-//    String nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getId().toString();
-//
-//    return new CursorPageResponseInterestDto(content, nextCursor);
-//    return null;
-//  }
+  public CursorPageResponseInterestDto searchInterests(
+      String keyword,
+      String orderBy,
+      String direction,
+      String cursor,
+      LocalDateTime after,
+      int limit,
+      UUID requestUserId
+  ) {
+    List<Interest> interests = interestRepository.findInterestsWithCursor(
+        keyword, orderBy, direction, cursor,after, limit
+    );
+
+    boolean hasNext = interests.size() > limit;
+
+    Interest nextInterest = hasNext ? interests.get(limit) : null;
+    String nextCursor = nextInterest != null ? nextInterest.getId().toString() : null;
+    LocalDateTime nextAfter = nextInterest != null ? nextInterest.getCreatedAt() : null;
+
+    if (hasNext) interests.remove(limit);
+
+    List<InterestDto> interestDtos = interests.stream()
+        .map(interest -> {
+          List<Keyword> keywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interest.getId());
+          return interestMapper.toDto(interest, keywords, false);
+        }).toList();
+
+    Long totalElements = interestRepository.count();
+
+    return new CursorPageResponseInterestDto(
+        interestDtos,
+        nextCursor,
+        nextAfter,
+        interestDtos.size(),
+        totalElements,
+        hasNext
+    );
+  }
 
 
   private void validateSimilarNameExists(String name) {
