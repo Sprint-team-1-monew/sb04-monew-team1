@@ -65,4 +65,26 @@ public class SubscriptionService {
 
     return subscriptionMapper.toDto(saved, keywords);
   }
+
+  public void unsubscribe(UUID userId, UUID interestId) {
+    // 1. 사용자 조회
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+
+    // 2. 관심사 조회
+    Interest interest = interestRepository.findById(interestId)
+        .orElseThrow(() -> new InterestException(InterestErrorCode.INTEREST_NOT_FOUND, Map.of("interestId", interestId)));
+
+    // 3. 구독 조회
+    Subscription subscription = subscriptionRepository.findByUserAndInterest(user, interest)
+        .orElseThrow(() -> new SubscriptionException(SubscriptionErrorCode.NOT_SUBSCRIBED,
+            Map.of("userId", userId, "interestId", interestId)));
+
+    // 4. 구독 삭제
+    subscriptionRepository.delete(subscription);
+
+    // 5. 구독자 수 감소
+    interest.decreaseSubscriber();
+  }
+
 }
