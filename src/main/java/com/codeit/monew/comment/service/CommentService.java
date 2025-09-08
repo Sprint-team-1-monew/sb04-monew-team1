@@ -7,9 +7,11 @@ import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
+import com.codeit.monew.exception.comment.CommentErrorCode;
 import com.codeit.monew.exception.comment.CommentNotFoundException;
 import com.codeit.monew.user.repository.UserRepository;
 import com.codeit.monew.user.service.UserService;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -32,35 +34,27 @@ public class CommentService {
 
     Comment commentEntity = commentMapper.toCommentEntity(commentRegisterRequest);
 
-    if(!userRepository.existsById(commentEntity.getUser().getId())) {
+    if (!userRepository.existsById(commentEntity.getUser().getId())) {
       throw new IllegalArgumentException("사용자 ID가 존재하지 않습니다.");
     }
 
-    if(!articleRepository.existsById(commentEntity.getArticle().getId())) {
+    if (!articleRepository.existsById(commentEntity.getArticle().getId())) {
       throw new IllegalArgumentException("기사가 존재하지 않습니다.");
     }
 
-
-    try {
       Comment saved = commentRepository.save(commentEntity);
       log.info("댓글 등록 완료 : {}", saved);
       //응답 DTO 변환
       return commentMapper.toCommentDto(saved);
-    } catch (Exception e) {
-      log.error("댓글 저장 중 오류 발생: {}", e.getMessage());
-      throw e;
     }
-  }
+
 
   public CommentDto updateComment(UUID commentId, UUID userId,
       CommentUpdateRequest commentUpdateRequest) {
 
     //댓글 유효 검증
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(Map.of(
-            "commentId", commentId,
-            "message", "댓글이 존재하지 않습니다."
-        )));
+        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
 
     //사용자 본인 인지 검증
     if (!comment.getUser().getId().equals(userId)) {
@@ -73,5 +67,19 @@ public class CommentService {
 
     return commentMapper.toCommentDto(comment);
   }
+
+  public CommentDto deleteCommentLogical(UUID commentId) {
+      Comment comment = commentRepository.findById(commentId)
+          .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+
+      comment.setIsdeleted(true);
+      comment.setDeletedAt(LocalDateTime.now());
+
+      commentRepository.save(comment);
+
+    return commentMapper.toCommentDto(comment);
+  }
+
+  
 
 }
