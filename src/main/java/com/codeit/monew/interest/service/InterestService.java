@@ -38,7 +38,7 @@ public class InterestService {
     Interest interest = Interest.builder()
         .name(request.name())
         .subscriberCount(0)
-        .deletedAt(false)
+        .isDeleted(false)
         .build();
 
     Interest savedInterest = interestRepository.save(interest);
@@ -99,7 +99,7 @@ public class InterestService {
 
 
   private void validateSimilarNameExists(String name) {
-    List<Interest> existingInterests = interestRepository.findAllByDeletedAtFalse();
+    List<Interest> existingInterests = interestRepository.findAllByIsDeletedFalse();
 
     for (Interest existingInterest : existingInterests) {
       String existingName = existingInterest.getName();

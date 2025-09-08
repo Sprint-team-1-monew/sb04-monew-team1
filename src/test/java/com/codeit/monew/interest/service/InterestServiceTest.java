@@ -69,7 +69,7 @@ class InterestServiceTest {
   @DisplayName("관심사 등록 요청시 정상적으로 응답 DTO를 반환한다")
   void registerInterest_Success() {
     // Given
-    given(interestRepository.findAllByDeletedAtFalse()).willReturn(List.of());
+    given(interestRepository.findAllByIsDeletedFalse()).willReturn(List.of());
 
     Interest mockInterest = Interest.builder().build();
     given(interestRepository.save(any(Interest.class))).willReturn(mockInterest);
@@ -142,7 +142,7 @@ class InterestServiceTest {
         .name("mock-interest")
         .subscriberCount(100)
         .createdAt(LocalDateTime.now())
-        .deletedAt(false)
+        .isDeleted(false)
         .build();
   }
 
