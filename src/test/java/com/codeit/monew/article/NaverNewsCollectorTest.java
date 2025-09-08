@@ -1,30 +1,32 @@
 package com.codeit.monew.article;
 
 
-import static org.awaitility.Awaitility.await;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-
 import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.naver.NaverNewsCollector;
 import com.codeit.monew.article.naver.NaverNewsItem;
 import com.codeit.monew.article.naver.NaverNewsResponse;
 import com.codeit.monew.article.repository.ArticleRepository;
-import com.codeit.monew.article.naver.NaverNewsCollector;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.entity.Keyword;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
+import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Optional;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import okhttp3.mockwebserver.RecordedRequest;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -32,12 +34,6 @@ import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
-
-import java.lang.reflect.Method;
-import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 
@@ -163,7 +159,7 @@ class NaverNewsCollectorTest {
   void build_ignores_blank_keywords_and_highlights_all_occurrences() throws Exception {
     Interest interest = Interest.builder()
         .name("스포츠")
-        .subCount(1)
+        .subscriberCount(Integer.valueOf(1))
         .deletedAt(false)
         .build();
 

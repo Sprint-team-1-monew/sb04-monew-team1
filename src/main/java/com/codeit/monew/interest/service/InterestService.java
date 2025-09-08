@@ -47,13 +47,39 @@ public class InterestService {
             .interest(savedInterest)
             .deletedAt(false)
             .build())
-        .collect(Collectors.toList());
+            .collect(Collectors.toList());
 
     keywordRepository.saveAll(keywords);
 
     // DTO로 변환하여 반환
     return interestMapper.toDto(savedInterest, keywords, false);
   }
+
+//  @Transactional(readOnly = true)
+//  public CursorPageResponseInterestDto searchInterests(
+//      String keyword,
+//      String orderBy,
+//      String direction,
+//      String cursor,
+//      LocalDateTime after,
+//      int limit,
+//      UUID requestUserId
+//  ) {
+//    List<Interest> interests = interestRepository.searchInterests(
+//        keyword, orderBy, direction, cursor, after, limit
+//    );
+//
+//    List<InterestDto> content = interests.stream()
+//        .map(interest -> interestMapper.toDto(interest, interest.get))
+//        .toList();
+//
+//    // 다음 페이지 커서 설정 (마지막 요소 기준)
+//    String nextCursor = content.isEmpty() ? null : content.get(content.size() - 1).getId().toString();
+//
+//    return new CursorPageResponseInterestDto(content, nextCursor);
+//    return null;
+//  }
+
 
   private void validateSimilarNameExists(String name) {
     List<Interest> existingInterests = interestRepository.findAllByDeletedAtFalse();
