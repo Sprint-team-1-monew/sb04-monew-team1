@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -59,5 +60,14 @@ public class InterestController {
   ) {
     SubscriptionDto dto = subscriptionService.subscribe(userId, interestId);
     return ResponseEntity.status(HttpStatus.CREATED).body(dto);
+  }
+
+  @DeleteMapping("/{interestId}/subscriptions")
+  public ResponseEntity<Void> unsubscribe(
+      @PathVariable UUID interestId,
+      @RequestHeader("Monew-Request-User-ID") UUID userId
+  ) {
+    subscriptionService.unsubscribe(userId, interestId);
+    return ResponseEntity.noContent().build();
   }
 }
