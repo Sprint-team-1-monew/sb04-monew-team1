@@ -63,16 +63,22 @@ class InterestServiceTest {
   @Test
   @DisplayName("관심사 등록 요청시 정상적으로 응답 DTO를 반환한다")
   void registerInterest_Success() {
-    // Given - Mock 동작 정의
+    // Given
     given(interestRepository.findAllByDeletedAtFalse()).willReturn(List.of());
-    given(interestRepository.save(any(Interest.class))).willReturn(any(Interest.class));
-    given(keywordRepository.saveAll(anyList())).willReturn(anyList());
-    given(interestMapper.toDto(any(Interest.class), anyList(), anyBoolean())).willReturn(expectedDto);
 
-    // When - 서비스 메서드 실행
+    Interest mockInterest = Interest.builder().build();
+    given(interestRepository.save(any(Interest.class))).willReturn(mockInterest);
+
+    List<Keyword> mockKeywords = List.of();
+    given(keywordRepository.saveAll(anyList())).willReturn(mockKeywords);
+
+    given(interestMapper.toDto(any(Interest.class), anyList(), anyBoolean()))
+        .willReturn(expectedDto);
+
+    // When
     InterestDto result = interestService.registerInterest(request);
 
-    // Then - 결과 검증
+    // Then
     assertThat(result)
         .isNotNull()
         .isEqualTo(expectedDto);
