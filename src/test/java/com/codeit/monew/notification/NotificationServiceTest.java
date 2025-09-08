@@ -110,7 +110,7 @@ public class NotificationServiceTest {
 
     Comment comment = Comment.builder()
         .content("댓글")
-        .deleted(false)
+        .isDeleted(false)
         .likeCount(0)
         .user(user)
         .article(mock(Article.class))

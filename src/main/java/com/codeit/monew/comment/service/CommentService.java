@@ -75,7 +75,7 @@ public class CommentService {
     return commentMapper.toCommentDto(comment);
   }
 
-  public void deleteCommentLogical(UUID commentId) {
+  public void softDeleteComment(UUID commentId) {
     log.info("댓글 논리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
@@ -89,7 +89,7 @@ public class CommentService {
 
   }
 
-  public void deleteCommentPhysical(UUID commentId) {
+  public void hardDeleteComment(UUID commentId) {
     log.info("댓글 물리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
