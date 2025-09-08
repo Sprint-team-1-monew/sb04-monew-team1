@@ -139,4 +139,38 @@ public class NotificationServiceTest {
     assertThat(result.getResourceType()).isEqualTo(ResourceType.COMMENT);
     assertThat(result.getContent()).isEqualTo("[좋아요누른사람]님이 나의 댓글을 좋아합니다.");
   }
+
+  @Test
+  void confirmNotification_success() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID notificationId = UUID.randomUUID();
+
+    User user = User.builder()
+        .email("user@test.com")
+        .nickname("테스터")
+        .password("password")
+        .build();
+    ReflectionTestUtils.setField(user, "id", userId);
+
+    Notification notification = Notification.builder()
+        .user(user)
+        .confirmed(false)
+        .content("알림")
+        .resourceType(ResourceType.INTEREST)
+        .resourceId(UUID.randomUUID())
+        .build();
+    ReflectionTestUtils.setField(notification, "id", notificationId);
+
+    given(notificationRepository.findById(notificationId)).willReturn(Optional.of(notification));
+    given(notificationRepository.save(any(Notification.class))).willReturn(notification);
+
+    // when
+    Notification result = notificationService.confirmNotification(userId, notificationId);
+
+    // then
+    assertThat(result.isConfirmed()).isTrue();
+    assertThat(result.getId()).isEqualTo(notificationId);
+    assertThat(result.getUser().getId()).isEqualTo(userId);
+  }
 }
