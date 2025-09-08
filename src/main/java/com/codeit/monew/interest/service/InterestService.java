@@ -11,6 +11,11 @@ import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
+import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.exception.UserErrorCode;
+import com.codeit.monew.user.exception.UserException;
+import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +32,10 @@ public class InterestService {
 
   private final InterestRepository interestRepository;
   private final KeywordRepository keywordRepository;
+
+  private final UserRepository userRepository;
+  private final SubscriptionRepository subscriptionRepository;
+
   private final InterestMapper interestMapper;
 
   @Transactional
@@ -67,6 +76,10 @@ public class InterestService {
       int limit,
       UUID requestUserId
   ) {
+    User user = userRepository.findById(requestUserId)
+        .orElseThrow(
+            () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", requestUserId.toString())));
+
     List<Interest> interests = interestRepository.findInterestsWithCursor(
         keyword, orderBy, direction, cursor,after, limit
     );
@@ -82,7 +95,8 @@ public class InterestService {
     List<InterestDto> interestDtos = interests.stream()
         .map(interest -> {
           List<Keyword> keywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interest.getId());
-          return interestMapper.toDto(interest, keywords, false);
+          boolean subscribedByMe = subscriptionRepository.existsByUserAndInterest(user, interest);
+          return interestMapper.toDto(interest, keywords, subscribedByMe);
         }).toList();
 
     Long totalElements = interestRepository.count();
