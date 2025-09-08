@@ -10,6 +10,7 @@ import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.subscriptions.dto.SubscriptionDto;
 import com.codeit.monew.subscriptions.entity.Subscription;
+import com.codeit.monew.subscriptions.mapper.SubscriptionMapper;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
@@ -31,6 +32,8 @@ public class SubscriptionService {
   private final UserRepository userRepository;
   private final InterestRepository interestRepository;
   private final KeywordRepository keywordRepository;
+
+  private final SubscriptionMapper subscriptionMapper;
 
   public SubscriptionDto subscribe(UUID userId, UUID interestId) {
     User user = userRepository.findById(userId)
@@ -60,6 +63,6 @@ public class SubscriptionService {
     // 키워드 직접 조회
     List<Keyword> keywords = keywordRepository.findByInterestAndDeletedAtFalse(interest);
 
-    return SubscriptionDto.from(saved, keywords);
+    return subscriptionMapper.toDto(saved, keywords);
   }
 }

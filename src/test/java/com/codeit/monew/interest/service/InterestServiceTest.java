@@ -145,6 +145,4 @@ class InterestServiceTest {
         .isDeleted(false)
         .build();
   }
-
-
 }
