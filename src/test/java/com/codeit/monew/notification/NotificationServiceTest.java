@@ -17,6 +17,7 @@ import com.codeit.monew.notification.service.NotificationService;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -172,5 +173,46 @@ public class NotificationServiceTest {
     assertThat(result.isConfirmed()).isTrue();
     assertThat(result.getId()).isEqualTo(notificationId);
     assertThat(result.getUser().getId()).isEqualTo(userId);
+  }
+
+  @Test
+  void confirmAllNotifications_success() {
+    // given
+    UUID userId = UUID.randomUUID();
+
+    User user = User.builder()
+        .email("test@example.com")
+        .nickname("테스터")
+        .password("password")
+        .build();
+    ReflectionTestUtils.setField(user, "id", userId);
+
+    Notification notification1 = Notification.builder()
+        .user(user)
+        .confirmed(false)
+        .content("알림1")
+        .resourceType(ResourceType.INTEREST)
+        .resourceId(UUID.randomUUID())
+        .build();
+
+    Notification notification2 = Notification.builder()
+        .user(user)
+        .confirmed(false)
+        .content("알림2")
+        .resourceType(ResourceType.COMMENT)
+        .resourceId(UUID.randomUUID())
+        .build();
+
+    List<Notification> notifications = List.of(notification1, notification2);
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(notificationRepository.findByUserAndConfirmedFalse(user)).willReturn(notifications);
+    given(notificationRepository.saveAll(notifications)).willReturn(notifications);
+
+    // when
+    notificationService.confirmAllNotifications(userId);
+
+    // then
+    notifications.forEach(notification -> assertThat(notification.isConfirmed()).isTrue());
   }
 }
