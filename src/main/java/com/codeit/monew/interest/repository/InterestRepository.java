@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 @Repository
 public interface InterestRepository extends JpaRepository<Interest, UUID>, InterestRepositoryCustom{
 
-  List<Interest> findAllByDeletedAtFalse();
+  List<Interest> findAllByIsDeletedFalse();
 
 }
 
