@@ -3,6 +3,8 @@ package com.codeit.monew.comment.service;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.mapper.CommentMapper;
+import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
+import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
@@ -25,13 +27,16 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 public class CommentService {
 
-  private final CommentRepository commentRepository;
   private final CommentMapper commentMapper;
+  private final CommentRepository commentRepository;
+  private final CommentLikeQuerydslRepository commentLikeQuerydslRepository;
+
   private final UserRepository userRepository;
   private final ArticleRepository articleRepository;
 
   public CommentDto createComment(CommentRegisterRequest commentRegisterRequest) {
 
+    log.info("댓글 등록 시작 : {}", commentRegisterRequest);
     Comment commentEntity = commentMapper.toCommentEntity(commentRegisterRequest);
 
     if (!userRepository.existsById(commentEntity.getUser().getId())) {
@@ -42,19 +47,20 @@ public class CommentService {
       throw new IllegalArgumentException("기사가 존재하지 않습니다.");
     }
 
-      Comment saved = commentRepository.save(commentEntity);
-      log.info("댓글 등록 완료 : {}", saved);
-      //응답 DTO 변환
-      return commentMapper.toCommentDto(saved);
-    }
+    Comment saved = commentRepository.save(commentEntity);
+    log.info("댓글 등록 완료 : {}", saved);
+    //응답 DTO 변환
+    return commentMapper.toCommentDto(saved);
+  }
 
 
   public CommentDto updateComment(UUID commentId, UUID userId,
       CommentUpdateRequest commentUpdateRequest) {
-
+    log.info("댓글 수정 시작 : {}", commentId);
     //댓글 유효 검증
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
+            Map.of("commentId", commentId)));
 
     //사용자 본인 인지 검증
     if (!comment.getUser().getId().equals(userId)) {
@@ -64,22 +70,36 @@ public class CommentService {
     //댓글 업데이트
     comment.updateContent(commentUpdateRequest.content());
     commentRepository.save(comment);
+    log.info("댓글 수정 완료 : {}", commentId);
 
     return commentMapper.toCommentDto(comment);
   }
 
-  public CommentDto deleteCommentLogical(UUID commentId) {
-      Comment comment = commentRepository.findById(commentId)
-          .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND, Map.of("commentId", commentId)));
+  public void deleteCommentLogical(UUID commentId) {
+    log.info("댓글 논리 삭제 시작 : {}", commentId);
+    Comment comment = commentRepository.findById(commentId)
+        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
+            Map.of("commentId", commentId)));
 
-      comment.setIsdeleted(true);
-      comment.setDeletedAt(LocalDateTime.now());
+    comment.setIsdeleted(true);
+    comment.setDeletedAt(LocalDateTime.now());
 
-      commentRepository.save(comment);
+    commentRepository.save(comment);
+    log.info("댓글 논리 삭제 완료 : {}", comment);
 
-    return commentMapper.toCommentDto(comment);
   }
 
-  
+  public void deleteCommentPhysical(UUID commentId) {
+    log.info("댓글 물리 삭제 시작 : {}", commentId);
+    Comment comment = commentRepository.findById(commentId)
+        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
+            Map.of("commentId", commentId)));
+
+    commentLikeQuerydslRepository.deleteByCommentId(commentId);
+
+    commentRepository.delete(comment);
+    log.info("댓글 물리 삭제 완료 : {}", commentId);
+
+  }
 
 }

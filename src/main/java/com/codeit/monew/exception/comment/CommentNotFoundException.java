@@ -8,6 +8,6 @@ import java.util.Map;
 public class CommentNotFoundException extends CommentException {
 
   public CommentNotFoundException(ErrorCode errorCode, Map<String, Object> details) {
-    super(LocalDateTime.now(), errorCode, details);
+    super(errorCode, details);
   }
 }
