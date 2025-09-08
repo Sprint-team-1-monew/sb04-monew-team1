@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
@@ -12,7 +13,10 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
@@ -84,4 +88,63 @@ class InterestServiceTest {
         .isNotNull()
         .isEqualTo(expectedDto);
   }
+
+  @Test
+  @DisplayName("기본 조건으로 관심사 목록을 조회하면 기대한 DTO를 반환한다")
+  void searchInterests_ReturnsExpectedDto_DefaultCondition() {
+    // Given
+    String keyword = null;
+    String orderBy = "createdAt";
+    String direction = "DESC";
+    String cursor = "3";
+    LocalDateTime after = null;
+    int limit = 2;
+    UUID requestUserId = UUID.randomUUID();
+
+    Interest mockInterest = createMockInterest();
+    List<Interest> mockInterests = new ArrayList<>(Arrays.asList(mockInterest, mockInterest, mockInterest));
+
+    given(interestRepository.findInterestsWithCursor(keyword, orderBy, direction, cursor, after, limit))
+        .willReturn(mockInterests);
+
+    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(any()))
+        .willReturn(List.of());
+
+    InterestDto expectedDto = createMockDto(); // 간단한 mock
+    given(interestMapper.toDto(any(), anyList(), eq(false)))
+        .willReturn(expectedDto);
+
+    given(interestRepository.count()).willReturn(3L);
+
+    // When
+    CursorPageResponseInterestDto result = interestService.searchInterests(
+        keyword, orderBy, direction, cursor, after, limit, requestUserId
+    );
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.content()).containsOnly(expectedDto);
+  }
+
+  private InterestDto createMockDto() {
+    return new InterestDto(
+        UUID.randomUUID(),
+        "mock",
+        List.of("키워드1", "키워드2"),
+        100L,
+        false
+    );
+  }
+
+  private Interest createMockInterest() {
+    return Interest.builder()
+        .id(UUID.randomUUID())
+        .name("mock-interest")
+        .subscriberCount(100)
+        .createdAt(LocalDateTime.now())
+        .deletedAt(false)
+        .build();
+  }
+
+
 }
