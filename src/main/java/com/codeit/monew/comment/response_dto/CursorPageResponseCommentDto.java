@@ -4,10 +4,10 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public record CursorPageResponseCommentDto (
-    List<CommentDto> content,
-    String nextCursor,
-    LocalDateTime nextAfter,
-    Integer size,
-    Long totalElements,
-    Boolean hasNext
+  List<CommentDto> content,
+  String nextCursor,
+  LocalDateTime nextAfter,
+  Integer size,
+  Long totalElements,
+  Boolean hasNext
 ){}

@@ -1,0 +1,11 @@
+package com.codeit.monew.comment.repository;
+
+import com.codeit.monew.comment.entity.Comment;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+
+
+public interface CommentRepository extends JpaRepository<Comment, UUID> {
+
+  boolean existsById(UUID id);
+}

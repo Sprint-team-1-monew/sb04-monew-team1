@@ -4,8 +4,8 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 
 public record ArticleRestoreResultDto(
-    LocalDateTime restoreDate,
-    ArrayList<String> restoredArticleIds,
-    long restoredArticleCount
+  LocalDateTime restoreDate,
+  ArrayList<String> restoredArticleIds,
+  long restoredArticleCount
 )
 {}
