@@ -1,5 +1,6 @@
 package com.codeit.monew.exception.global;
 
+import com.codeit.monew.exception.article.ArticleException;
 import com.codeit.monew.exception.example.ExampleException;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +34,20 @@ public class GlobalExceptionHandler {
         e.getErrorCode().getStatus());
 
     return ResponseEntity.status(e.getErrorCode().getStatus()).body(errorResponse);
+  }
+  
+  @ExceptionHandler(ArticleException.class)
+  public ResponseEntity<ErrorResponse> handleArticleException(ArticleException e) {
+    ErrorResponse errorResponse = new ErrorResponse(
+        e.getTimestamp(),
+        e.getErrorCode().getName(),
+        e.getErrorCode().getMessage(),
+        e.getDetails(),
+        e.getClass().getSimpleName(),
+        e.getErrorCode().getStatus()
+    );
+    return ResponseEntity.status(errorResponse.status()).body(errorResponse);
+
   }
 
   @ExceptionHandler(RuntimeException.class)
