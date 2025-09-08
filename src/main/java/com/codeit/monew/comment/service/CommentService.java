@@ -81,7 +81,7 @@ public class CommentService {
         .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
             Map.of("commentId", commentId)));
 
-    comment.setIsdeleted(true);
+    comment.setIsDeleted(true);
     comment.setDeletedAt(LocalDateTime.now());
 
     commentRepository.save(comment);
