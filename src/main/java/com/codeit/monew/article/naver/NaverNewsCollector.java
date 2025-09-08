@@ -97,7 +97,9 @@ public class NaverNewsCollector {
     }
     log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
   }
-  private Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
+
+  @Transactional
+  protected Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
 
     List<Keyword> keywords = keywordRepository.findByInterest(interest);
 
@@ -123,6 +125,7 @@ public class NaverNewsCollector {
         .interest(interest)
         .build();
   }
+
   private static final DateTimeFormatter NAVER_DATE_FORMATTER =
       DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
@@ -131,7 +134,8 @@ public class NaverNewsCollector {
     return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
   }
 
-  private boolean isArticleDuplicated(Article article) {
+  @Transactional
+  protected boolean isArticleDuplicated(Article article) {
     log.info("네이버 기사 중복 검사 시작: {}", article.getSourceUrl());
     Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
     if (articleOptional.isPresent()) {
