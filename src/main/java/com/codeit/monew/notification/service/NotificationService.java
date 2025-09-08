@@ -15,6 +15,7 @@ import com.codeit.monew.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -120,7 +121,32 @@ public class NotificationService {
   }
 
   public void confirmAllNotifications(UUID userId) {
+    if (userId == null) {
+      throw new NotificationException(
+          NotificationErrorCode.INVALID_REQUEST,
+          Map.of("userId", "null")
+      );
+    }
 
+    try {
+      User user = userRepository.findById(userId)
+          .orElseThrow(() -> new NotificationException(
+              NotificationErrorCode.NOTIFICATION_NOT_FOUND,
+              Map.of("userId", userId)
+          ));
+
+      List<Notification> notifications = notificationRepository.findByUserAndConfirmedFalse(user);
+      notifications.forEach(notification -> notification.setConfirmed(true));
+      notificationRepository.saveAll(notifications);
+
+    } catch (NotificationException ne) {
+      throw ne;
+    } catch (Exception e) {
+      throw new NotificationException(
+          NotificationErrorCode.INTERNAL_ERROR,
+          Map.of("message", e.getMessage())
+      );
+    }
   }
 
   public void deleteOldConfirmNotifications() {
