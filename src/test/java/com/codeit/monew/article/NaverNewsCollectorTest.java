@@ -79,7 +79,7 @@ class NaverNewsCollectorTest {
   }
 
   private boolean invokeDuplicate(Article article) throws Exception {
-    Method m = NaverNewsCollector.class.getDeclaredMethod("duplicateArticle", Article.class);
+    Method m = NaverNewsCollector.class.getDeclaredMethod("isArticleDuplicated", Article.class);
     m.setAccessible(true);
     return (boolean) m.invoke(collector, article);
   }

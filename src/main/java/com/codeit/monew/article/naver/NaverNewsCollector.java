@@ -140,7 +140,7 @@ public class NaverNewsCollector {
       /*Map<String, Object> details = new HashMap<>();
       details.put("이유: ", "기사가 중복 됨");
       throw new ArticleDuplicateException(details);*/
-    }
+    } 
     log.info("네이버 기사 중복 검사 종료: {}", article.getSourceUrl());
     return false;
   }
