@@ -105,4 +105,30 @@ class SubscriptionServiceTest {
         .usingRecursiveComparison()
         .isEqualTo(expectedDto);
   }
+
+  @Test
+  @DisplayName("구독 취소시 정상적으로 구독이 삭제되고 구독자 수가 감소한다")
+  void unsubscribe_Success() {
+    // Given
+    Subscription mockSubscription = Subscription.builder()
+        .id(UUID.randomUUID())
+        .user(mockUser)
+        .interest(mockInterest)
+        .createdAt(LocalDateTime.now())
+        .build();
+
+    // 구독 되어 있는 상태
+    mockInterest.increaseSubscriber();
+
+    given(userRepository.findById(userId)).willReturn(Optional.of(mockUser));
+    given(interestRepository.findById(interestId)).willReturn(Optional.of(mockInterest));
+    given(subscriptionRepository.findByUserAndInterest(mockUser, mockInterest))
+        .willReturn(Optional.of(mockSubscription));
+
+    // When
+    subscriptionService.unsubscribe(userId, interestId);
+
+    // Then
+    assertThat(mockInterest.getSubscriberCount()).isZero();
+  }
 }
