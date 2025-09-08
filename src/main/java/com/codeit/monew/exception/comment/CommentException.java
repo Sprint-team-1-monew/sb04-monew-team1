@@ -4,11 +4,12 @@ import com.codeit.monew.exception.global.ErrorCode;
 import com.codeit.monew.exception.global.MoNewException;
 import java.time.LocalDateTime;
 import java.util.Map;
+import org.springframework.cglib.core.Local;
 
 public class CommentException extends MoNewException {
 
-  public CommentException(LocalDateTime timestamp, ErrorCode errorCode,
+  public CommentException(ErrorCode errorCode,
       Map<String, Object> details) {
-    super(timestamp, errorCode, details);
+    super(LocalDateTime.now(), errorCode, details);
   }
 }
