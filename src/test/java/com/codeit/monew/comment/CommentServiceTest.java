@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.mapper.CommentMapper;
+import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
+import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
@@ -19,10 +22,12 @@ import com.codeit.monew.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
+import kotlin.DslMarker;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -35,6 +40,12 @@ public class CommentServiceTest {
 
   @Mock
   private CommentMapper commentMapper;
+
+  @Mock
+  private CommentLikeRepository commentLikeRepository;
+
+  @Mock
+  private CommentLikeQuerydslRepository commentLikeQuerydslRepository;
 
   @InjectMocks
   private CommentService commentService;
@@ -61,7 +72,7 @@ public class CommentServiceTest {
     //given
     Comment mappedEntity = Comment.builder()
         .content(commentRegisterRequest.content())
-        .deleted(false)
+        .isDeleted(false)
         .likeCount(0)
         .user(User.builder().build())
         .article(Article.builder().build())
@@ -109,7 +120,7 @@ public class CommentServiceTest {
 
     Comment mappedEntity = Comment.builder()
         .content(commentRegisterRequest.content())
-        .deleted(false)
+        .isDeleted(false)
         .likeCount(0)
         .user(dummyUser)
         .article(dummyArticle)
@@ -137,6 +148,56 @@ public class CommentServiceTest {
     verify(commentRepository).findById(commentId);
     verify(commentRepository).save(mappedEntity);
     then(commentMapper).should().toCommentDto(any(Comment.class));
+
+  }
+
+  @Test
+  @DisplayName("댓글 논리 삭제 성공")
+  void softDelete_Success(){
+
+    //given
+    Comment mappedEntity = Comment.builder()
+        .content(commentRegisterRequest.content())
+        .isDeleted(false)
+        .likeCount(0)
+        .user(User.builder().build())
+        .article(Article.builder().build())
+        .build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
+
+    //when
+    commentService.softDeleteComment(commentId);
+
+    //then
+    ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
+    verify(commentRepository, times(1)).save(captor.capture());
+
+    Comment savedComment = captor.getValue();
+    assertThat(savedComment.getIsDeleted()).isTrue();
+  }
+
+  @Test
+  @DisplayName("댓글 물리 삭제 성공")
+  void hardDelete_Success(){
+
+    //given
+    Comment mappedEntity = Comment.builder()
+        .content(commentRegisterRequest.content())
+        .isDeleted(false)
+        .likeCount(0)
+        .user(User.builder().build())
+        .article(Article.builder().build())
+        .build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
+
+    //when
+    commentService.hardDeleteComment(commentId);
+
+    //then
+    verify(commentLikeQuerydslRepository, times(1)).deleteByCommentId(commentId);
+    verify(commentRepository, times(1)).delete(mappedEntity);
 
   }
 

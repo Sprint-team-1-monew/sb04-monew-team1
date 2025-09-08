@@ -40,9 +40,9 @@ public class CommentController {
         .body(create);
   }
 
-  @PatchMapping(path = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PatchMapping(path = "/{commentId}", consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<CommentDto> updateComment(
-      @PathVariable("id") UUID commentId,
+      @PathVariable("commentId") UUID commentId,
       @RequestHeader("Monew-Request-User-ID") UUID userId,
       @RequestBody @Valid CommentUpdateRequest commentUpdateRequest) {
     log.info("댓글 수정 요청 : {}", commentUpdateRequest);
@@ -56,11 +56,19 @@ public class CommentController {
   }
 
 
-  @DeleteMapping(path = "/{id}")
-  public ResponseEntity<Void> deleteComment(
-      @PathVariable("id") UUID commentId
+  @DeleteMapping(path = "/{commentId}")
+  public ResponseEntity<Void> deleteCommentSoft(
+      @PathVariable("commentId") UUID commentId
   ) {
-    commentService.deleteCommentLogical(commentId);
+    commentService.softDeleteComment(commentId);
+    return ResponseEntity.noContent().build();
+  }
+
+  @DeleteMapping(path = "/{commentId}/hard")
+  public ResponseEntity<Void> deleteCommentHard(
+      @PathVariable("commentId") UUID commentId
+  ) {
+    commentService.hardDeleteComment(commentId);
     return ResponseEntity.noContent().build();
   }
 
