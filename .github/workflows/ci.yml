@@ -38,4 +38,32 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/test/html
 
-# PR 코멘트
+# 커버리지 수치를 jacoco XML에서 뽑은 다음 PR 코멘트로 남기기
+      - name: Install xmllint (parsing XML) # xmllint 설치하기
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+# 커버리지 코멘트 설계
+      - name: Extract coverage numbers
+        id: coverage
+        run: |
+          XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          COVERED=$(xmllint --xpath "string(//counter[@type='LINE']/@covered)" "$XML" 2>/dev/null || echo 0)
+          MISSED=$(xmllint --xpath "string(//counter[@type='LINE']/@missed)" "$XML" 2>/dev/null || echo 0)
+          TOTAL=$((COVERED + MISSED))
+          PCT=$(awk "BEGIN { if ($TOTAL==0) print 0; else printf \"%.2f\", ($COVERED/$TOTAL)*100 }")
+          echo "covered=$COVERED" >> $GITHUB_OUTPUT
+          echo "missed=$MISSED" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "pct=$PCT" >> $GITHUB_OUTPUT
+
+# 커버리지 PR 남기기
+      - name: Post coverage comment PR
+        if: ${{ github.event_name == 'pull_request' }}
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: jacoco-coverage
+          message: |
+            ## JaCoCo Coverage Report(자코코 커버리지 리포트!)
+            - **CoverageLine(커버리지_라인)** ${{ steps.coverage.outputs.pct }}% (${{ steps.coverage.outputs.covered }} / ${{ steps.coverage.outputs.total }})
+            - **Missed(커버리지_수치)** ${{ steps.coverage.outputs.missed }}
+            - [HTML 리포트](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) (Artifact) 확인하기

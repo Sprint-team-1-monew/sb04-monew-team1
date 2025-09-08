@@ -11,3 +11,4 @@ public interface InterestRepository extends JpaRepository<Interest, UUID> {
 
   List<Interest> findAllByDeletedAtFalse();
 }
+
