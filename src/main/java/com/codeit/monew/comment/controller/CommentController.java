@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -41,17 +42,27 @@ public class CommentController {
 
   @PatchMapping(path = "/{id}", consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<CommentDto> updateComment(
-      @PathVariable ("id") UUID commentId,
-      @RequestHeader ("Monew-Request-User-ID") UUID userId,
-      @RequestBody @Valid CommentUpdateRequest commentUpdateRequest){
+      @PathVariable("id") UUID commentId,
+      @RequestHeader("Monew-Request-User-ID") UUID userId,
+      @RequestBody @Valid CommentUpdateRequest commentUpdateRequest) {
     log.info("댓글 수정 요청 : {}", commentUpdateRequest);
 
     CommentDto update = commentService.updateComment(commentId, userId, commentUpdateRequest);
 
-     log.debug("댓글 수정 응답 : {}", update);
+    log.debug("댓글 수정 응답 : {}", update);
     return ResponseEntity
         .status(HttpStatus.OK)
         .body(update);
   }
+
+
+  @DeleteMapping(path = "/{id}")
+  public ResponseEntity<Void> deleteComment(
+      @PathVariable("id") UUID commentId
+  ) {
+    commentService.deleteCommentLogical(commentId);
+    return ResponseEntity.noContent().build();
+  }
+
 
 }
