@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class CommentNotFoundException extends CommentException {
 
-  public CommentNotFoundException(Map<String, Object> details) {
-    super(LocalDateTime.now(), ExampleErrorCode.EXAMPLE_NOT_FOUND_EXCEPTION, details);
+  public CommentNotFoundException(ErrorCode errorCode, Map<String, Object> details) {
+    super(LocalDateTime.now(), errorCode, details);
   }
 }
