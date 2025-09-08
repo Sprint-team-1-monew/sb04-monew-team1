@@ -29,7 +29,7 @@ public class InterestRepositoryImpl implements InterestRepositoryCustom {
     OrderSpecifier<?> orderSpecifier = getOrderSpecifier(orderBy, direction, interest);
 
     // 조건 설정
-    BooleanExpression condition = interest.deletedAt.isFalse(); // 삭제되지 않은 것만
+    BooleanExpression condition = interest.isDeleted.isFalse(); // 삭제되지 않은 것만
 
     if (isValid(keyword)) {
       condition = condition.and(interest.name.containsIgnoreCase(keyword));
