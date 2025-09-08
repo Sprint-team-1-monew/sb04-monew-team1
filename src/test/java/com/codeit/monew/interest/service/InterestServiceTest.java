@@ -7,6 +7,7 @@ import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
+import com.codeit.monew.interest.entity.Keyword;
 import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
