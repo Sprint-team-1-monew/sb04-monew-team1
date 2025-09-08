@@ -36,6 +36,9 @@ public class Comment extends BaseEntity {
   @Column(name = "like_count", nullable = false)
   private int likeCount = 0;
 
+  @Column(name = "updated_at")
+  private LocalDateTime updatedAt;
+
   @Column(name = "deleted_at")
   private LocalDateTime deletedAt;
 
@@ -47,15 +50,11 @@ public class Comment extends BaseEntity {
   @JoinColumn(name = "article_id", nullable = false)
   private Article article;
 
-  @Override
-  public String toString() {
-    return "Comment{" +
-        "content='" + content + '\'' +
-        ", deleted=" + deleted +
-        ", likeCount=" + likeCount +
-        ", deletedAt=" + deletedAt +
-        ", user=" + user +
-        ", article=" + article +
-        '}';
+  public void updateContent(String content) {
+    if (content == null || content.isBlank()) {
+      throw new IllegalArgumentException("댓글 내용은 비어있을 수 없습니다.");
+    }
+    this.content = content;
+    this.updatedAt = LocalDateTime.now();
   }
 }
