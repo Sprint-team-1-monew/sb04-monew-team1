@@ -57,7 +57,7 @@ class ArticleServiceTest {
   void hardDeleteArticle_marksDeleted_andSaves() {
     // Given
     UUID id = UUID.randomUUID();
-    Interest interest = Interest.builder().name("test").subCount(0).build();
+    Interest interest = Interest.builder().name("test").subscriberCount(0).build();
     Article article = Article.builder()
         .source("NAVER")
         .sourceUrl("https://example.com")
