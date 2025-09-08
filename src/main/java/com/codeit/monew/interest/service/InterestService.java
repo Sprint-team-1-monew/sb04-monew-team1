@@ -46,7 +46,7 @@ public class InterestService {
             .interest(savedInterest)
             .deletedAt(false)
             .build())
-        .toList();
+        .collect(Collectors.toList());
 
     keywordRepository.saveAll(keywords);
 
