@@ -15,10 +15,19 @@ public interface CommentMapper {
 
   @Mapping(target = "user", expression = "java(mapUser(commentRegisterRequest.userId()))")
   @Mapping(target = "article", expression = "java(mapArticle(commentRegisterRequest.articleId()))")
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
+  @Mapping(target = "deleted", ignore = true)
+  @Mapping(target = "deletedAt", ignore = true)
+  @Mapping(target = "likeCount", ignore = true)
   Comment toCommentEntity(CommentRegisterRequest commentRegisterRequest);
 
-  Comment toCommentEntity(CommentUpdateRequest commentUpdateRequest);
-
+  @Mapping(target = "commentId", source = "id")
+  @Mapping(target = "userNickname", source = "user.nickname")
+  @Mapping(target = "likedByMe", ignore = true) // 필요에 따라 계산
+  @Mapping(target = "articleId", ignore = true)
+  @Mapping(target = "userId", ignore = true)
   CommentDto toCommentDto(Comment comment);
 
 
