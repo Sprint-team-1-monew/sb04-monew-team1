@@ -5,13 +5,12 @@ import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
+import com.codeit.monew.comment.response_dto.CommentLikeDto;
 import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
 import com.codeit.monew.comment.service.CommentService;
 import jakarta.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
-import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -94,6 +93,15 @@ public class CommentController {
     CursorPageResponseCommentDto responseCommentDto= commentService.getComments(articleId, orderBy, direction, cursor, after, limit, requestUserId);
 
     return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
+  }
+
+  @PostMapping(path = "/{commentId}/comment-likes")
+  public ResponseEntity<CommentLikeDto> commentLike(@PathVariable("commentId") UUID commentId,
+      @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
+
+    CommentLikeDto commentLikeDto = commentService.commentLike(commentId, requestUserId);
+
+    return ResponseEntity.status(HttpStatus.OK).body(commentLikeDto);
   }
 
 
