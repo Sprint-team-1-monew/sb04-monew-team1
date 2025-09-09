@@ -15,10 +15,14 @@ import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
+import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -39,6 +43,12 @@ class InterestServiceTest {
   private KeywordRepository keywordRepository;
 
   @Mock
+  private UserRepository userRepository;
+
+  @Mock
+  private SubscriptionRepository subscriptionRepository;
+
+  @Mock
   private InterestMapper interestMapper;
 
   @InjectMocks
@@ -46,6 +56,7 @@ class InterestServiceTest {
 
   private InterestRegisterRequest request;
   private InterestDto expectedDto;
+  private User mockUser;
 
   @BeforeEach
   void setUp() {
@@ -54,6 +65,11 @@ class InterestServiceTest {
         "프로그래밍",
         Arrays.asList("자바", "스프링", "개발")
     );
+
+    mockUser = User.builder()
+        .id(UUID.randomUUID())
+        .email("test@test.com")
+        .build();
 
     // Given - 예상 응답 데이터 준비
     expectedDto = new InterestDto(
@@ -101,6 +117,8 @@ class InterestServiceTest {
     int limit = 2;
     UUID requestUserId = UUID.randomUUID();
 
+    given(userRepository.findById(requestUserId)).willReturn(Optional.of(mockUser));
+
     Interest mockInterest = createMockInterest();
     List<Interest> mockInterests = new ArrayList<>(Arrays.asList(mockInterest, mockInterest, mockInterest));
 
@@ -109,6 +127,9 @@ class InterestServiceTest {
 
     given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(any()))
         .willReturn(List.of());
+
+    given(subscriptionRepository.existsByUserAndInterest(mockUser, mockInterest)).willReturn(false);
+
 
     InterestDto expectedDto = createMockDto(); // 간단한 mock
     given(interestMapper.toDto(any(), anyList(), eq(false)))
