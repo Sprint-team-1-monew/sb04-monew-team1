@@ -9,6 +9,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.mapper.CommentMapper;
 import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
@@ -19,6 +20,7 @@ import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
 import com.codeit.monew.comment.service.CommentService;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
@@ -49,6 +51,12 @@ public class CommentServiceTest {
 
   @InjectMocks
   private CommentService commentService;
+
+  @Mock
+  private UserRepository userRepository;  // Mock 객체\
+
+  @Mock
+  private ArticleRepository articleRepository;
 
   private UUID userId;
   private UUID articleId;
@@ -91,6 +99,8 @@ public class CommentServiceTest {
         LocalDateTime.now()
     );
 
+    given(userRepository.existsById(any())).willReturn(true);
+    given(articleRepository.existsById(any())).willReturn(true);
     given(commentMapper.toCommentEntity(commentRegisterRequest)).willReturn(mappedEntity);
     given(commentRepository.save(mappedEntity)).willReturn(savedEntity);
     given(commentMapper.toCommentDto(savedEntity)).willReturn(expectedDto);
