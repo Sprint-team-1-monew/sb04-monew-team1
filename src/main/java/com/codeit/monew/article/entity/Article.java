@@ -9,16 +9,14 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "Article")
+@Table(name = "articles")
 @Getter
 @SuperBuilder
 @NoArgsConstructor()
@@ -28,7 +26,7 @@ public class Article extends BaseEntity {
   @Column(name = "source", nullable = false)
   private String source;
 
-  @Column(name = "sourceUrl", nullable = false)
+  @Column(name = "source_url", nullable = false)
   private String sourceUrl;
 
   @Column(name = "article_title", nullable = false)
@@ -47,7 +45,7 @@ public class Article extends BaseEntity {
   private long articleViewCount;
 
   @Setter()
-  @Column(name = "deleted", nullable = false)
+  @Column(name = "is_deleted", nullable = false)
   private boolean deleted;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

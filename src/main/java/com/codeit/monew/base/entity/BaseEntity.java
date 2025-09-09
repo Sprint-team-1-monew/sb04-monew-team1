@@ -30,6 +30,6 @@ public abstract class BaseEntity {
   private UUID id;
 
   @CreatedDate
-  @Column(name = "createdAt", updatable = false, nullable = false)
+  @Column(name = "created_at", updatable = false, nullable = false)
   private LocalDateTime createdAt;
 }
