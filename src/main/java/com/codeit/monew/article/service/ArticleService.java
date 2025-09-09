@@ -67,7 +67,7 @@ public class ArticleService {
         keyword, interestId, sourceIn, publishDateFrom, publishDateTo, orderBy, direction, cursor, after, limit, requestUserId);
 
     List<Article> articles = articleRepository.searchArticles(keyword, interestId, sourceIn, publishDateFrom, publishDateTo, orderBy, direction, cursor, after, limit);
-    List<ArticleDto> content = null;
+    List<ArticleDto> content = new ArrayList<>();
     Optional<User> user = userRepository.findById(requestUserId); // npe 날 수 있으니 예외 처리, 충돌을 우려하며 나중에 유저 쪽 코드랑 머지 되었을 때 예외 처리 추가
 
     if (articles.size() > limit) {
