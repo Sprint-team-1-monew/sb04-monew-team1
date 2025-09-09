@@ -2,12 +2,17 @@ package com.codeit.monew.comment.service;
 
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
+import com.codeit.monew.comment.entity.CommentOrderBy;
+import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
 import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.comment.repository.CommentRepositoryCustom;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
+import com.codeit.monew.comment.response_dto.CommentListResponse;
+import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.exception.comment.CommentErrorCode;
 import com.codeit.monew.exception.comment.CommentException;
@@ -15,6 +20,7 @@ import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +37,7 @@ public class CommentService {
   private final CommentMapper commentMapper;
   private final CommentRepository commentRepository;
   private final CommentLikeQuerydslRepository commentLikeQuerydslRepository;
+  private final CommentRepositoryCustom commentRepositoryCustom;
 
   private final UserRepository userRepository;
   private final ArticleRepository articleRepository;
@@ -41,7 +48,8 @@ public class CommentService {
     Comment commentEntity = commentMapper.toCommentEntity(commentRegisterRequest);
 
     if (!userRepository.existsById(commentEntity.getUser().getId())) {
-      throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", commentEntity.getUser().getId()));
+      throw new UserException(UserErrorCode.USER_NOT_FOUND,
+          Map.of("userId", commentEntity.getUser().getId()));
     }
 
     if (!articleRepository.existsById(commentEntity.getArticle().getId())) {
@@ -60,11 +68,13 @@ public class CommentService {
     log.info("댓글 수정 시작 : {}", commentId);
     //댓글 유효 검증
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
+            Map.of("commentId", commentId)));
 
     //사용자 본인 인지 검증
     if (!comment.getUser().getId().equals(userId)) {
-      throw new CommentException(CommentErrorCode.IDENTITY_VERIFICATION_EXCEPTION, Map.of("userId", userId));
+      throw new CommentException(CommentErrorCode.IDENTITY_VERIFICATION_EXCEPTION,
+          Map.of("userId", userId));
     }
 
     //댓글 업데이트
@@ -78,7 +88,8 @@ public class CommentService {
   public void softDeleteComment(UUID commentId) {
     log.info("댓글 논리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
+            Map.of("commentId", commentId)));
 
     comment.setIsDeleted(true);
     comment.setDeletedAt(LocalDateTime.now());
@@ -91,12 +102,49 @@ public class CommentService {
   public void hardDeleteComment(UUID commentId) {
     log.info("댓글 물리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
+            Map.of("commentId", commentId)));
 
     commentLikeQuerydslRepository.deleteByCommentId(commentId);
 
     commentRepository.delete(comment);
     log.info("댓글 물리 삭제 완료 : {}", commentId);
+
+  }
+
+  public CursorPageResponseCommentDto getComments(UUID articleId,
+      CommentOrderBy orderBy,
+      SortDirection direction,
+      String cursor,
+      LocalDateTime after,
+      int limit,
+      UUID requestUserId) {
+
+    log.info(
+        "목록 조회 시작 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
+        articleId, orderBy, direction, cursor, after, limit, requestUserId);
+
+    commentRepositoryCustom.findComments(articleId, orderBy, direction, cursor, after, limit);
+
+    List<Comment> comments = commentRepositoryCustom.findComments(articleId, orderBy, direction,
+        cursor, after, limit);
+
+    //DTO 변환
+    List<CommentListResponse> content = comments.stream()
+        .map(CommentListResponse::fromEntity)
+        .toList();
+
+    //커서 값 계산
+    String nextCursor = comments.isEmpty() ? null :
+        comments.get(comments.size() -1 ).getId().toString();
+
+    boolean hasNext = comments.size() == limit; // Limit 만큼 채워졌으면 다음 페이지가 있다고 가정
+
+    return CursorPageResponseCommentDto.builder()
+        .content(content)
+        .nextCursor(nextCursor)
+        .hasNext(hasNext)
+        .build();
 
   }
 
