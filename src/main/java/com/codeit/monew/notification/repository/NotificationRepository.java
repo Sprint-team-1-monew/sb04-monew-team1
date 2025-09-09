@@ -23,4 +23,3 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   @Query("update Notification n set n.updatedAt = :updatedAt where n.id = :id")
   void updateUpdatedAt(@Param("id") UUID id, @Param("updatedAt") LocalDateTime updatedAt);
 }
-
