@@ -2,37 +2,35 @@ package com.codeit.monew.article;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.when;
 
+import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.entity.ArticlesViewUser;
 import com.codeit.monew.article.mapper.ArticleMapper;
+import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
+import com.codeit.monew.article.response_dto.ArticleViewDto;
 import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
 import com.codeit.monew.article.service.ArticleService;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
-import jakarta.persistence.criteria.CriteriaBuilder.In;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
-import com.codeit.monew.article.entity.Article;
-import com.codeit.monew.article.repository.ArticleRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mapstruct.factory.Mappers;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 class ArticleServiceTest {
@@ -197,6 +195,47 @@ class ArticleServiceTest {
 
     // then
     assertThat(res.content()).hasSize(2);      // limit 만큼만
+  }
+
+  @Test
+  @DisplayName("기사 뷰가 없을 때 새 기사 뷰 등록 테스트")
+  void searchArticlesThrowsWhenNotFoundAndNoSave() {
+    // given
+    String keyword = "스포츠";
+    UUID interestId = UUID.randomUUID();
+    List<String> sourceIn = List.of("NAVER");
+    LocalDateTime publishDateFrom = LocalDateTime.now().minusDays(7);
+    LocalDateTime publishDateTo = LocalDateTime.now();
+    String orderBy = "viewCount";
+    String direction = "DESC";
+    String cursor = null;
+    LocalDateTime after = null;
+    int limit = 2;
+    UUID articleId = UUID.randomUUID();
+
+    Article article = Article.builder()
+        .id(articleId)
+        .articleTitle("A1")
+        .articleViewCount(500)
+        .articleCommentCount(10)
+        .articlePublishDate(publishDateTo.minusHours(1))
+        .createdAt(publishDateTo.minusHours(1))
+        .build();
+
+    UUID requestUserId = UUID.randomUUID();
+    User user = User.builder().id(requestUserId).nickname("test").build();
+
+    when(userRepository.findById(requestUserId)).thenReturn(Optional.of(user));
+    when(articleRepository.findById(articleId)).thenReturn(Optional.of(article));
+    when(articleViewUserRepository.findByArticleAndUser(article, user)).thenReturn(Optional.empty());
+
+    ArticlesViewUser saved = new ArticlesViewUser(article, user);
+    when(articleViewUserRepository.save(any(ArticlesViewUser.class))).thenReturn(saved);
+    // when
+    ArticleViewDto dto = articleService.getArticleViewDto(articleId, requestUserId);
+
+    // then
+    assertThat(dto.id()).isEqualTo(articleId);
 
   }
 }
