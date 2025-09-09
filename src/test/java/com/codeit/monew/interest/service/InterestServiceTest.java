@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
@@ -13,6 +14,7 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
@@ -145,6 +147,49 @@ class InterestServiceTest {
     // Then
     assertThat(result).isNotNull();
     assertThat(result.content()).containsOnly(expectedDto);
+  }
+
+  @Test
+  @DisplayName("관심사 키워드 수정 요청시 정상적으로 수정된 DTO를 반환한다")
+  void updateInterest_Success() {
+    // Given
+    UUID interestId = UUID.randomUUID();
+    InterestUpdateRequest updateRequest = new InterestUpdateRequest(
+        Arrays.asList("수정된키워드1", "수정된키워드2", "수정된키워드3")
+    );
+
+    // 예상 응답 DTO
+    InterestDto expectedDto = new InterestDto(
+        interestId,
+        "기존 관심사",
+        Arrays.asList("수정된키워드1", "수정된키워드2", "수정된키워드3"),
+        5L,
+        null
+    );
+
+    // Mock Interest
+    Interest mockInterest = Interest.builder()
+        .id(interestId)
+        .name("기존 관심사")
+        .subscriberCount(5)
+        .isDeleted(false)
+        .build();
+
+    // Mock 설정
+    given(interestRepository.findById(interestId)).willReturn(Optional.of(mockInterest));
+    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interestId))
+        .willReturn(Arrays.asList());
+    given(keywordRepository.saveAll(anyList())).willReturn(Arrays.asList());
+    given(interestMapper.toDto(any(Interest.class), anyList(), isNull()))
+        .willReturn(expectedDto);
+
+    // When
+    InterestDto result = interestService.updateInterest(interestId, updateRequest);
+
+    // Then
+    assertThat(result)
+        .isNotNull()
+        .isEqualTo(expectedDto);
   }
 
   private InterestDto createMockDto() {
