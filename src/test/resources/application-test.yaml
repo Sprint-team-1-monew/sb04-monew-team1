@@ -18,6 +18,8 @@ spring:
   batch:
     job:
       enabled: true
+    notification-cleanup:
+      cron: "0 0 0 * * ?"
     jdbc:
       initialize-schema: always
 

@@ -26,8 +26,16 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
+@SpringBootTest(properties = {
+    "spring.task.scheduling.enabled=false",
+    "spring.quartz.job-store-type=memory",
+    "spring.quartz.auto-startup=false"
+})
+@ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
 
