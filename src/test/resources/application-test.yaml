@@ -1,14 +1,25 @@
 spring:
-  profiles: test
   datasource:
-    url: jdbc:h2:mem:testdb;MODE=PostgreSQL;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:monew;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS public
     username: sa
     password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  batch:
+    job:
+      enabled: true
+    jdbc:
+      initialize-schema: always
   sql:
     init:
       mode: always
-      schema-locations: classpath:db/h2_batch_schema.sql
-  task:
-    scheduling:
-      enabled: false
+      schema-locations: classpath:schema-h2.sql
+
