@@ -4,7 +4,6 @@ import com.codeit.monew.exception.global.ErrorCode;
 import com.codeit.monew.exception.global.MoNewException;
 import java.time.LocalDateTime;
 import java.util.Map;
-import org.springframework.cglib.core.Local;
 
 public class CommentException extends MoNewException {
 

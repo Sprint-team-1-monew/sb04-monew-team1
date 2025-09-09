@@ -6,6 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface CommentLikeRepository extends JpaRepository<CommentLike, UUID> {
 
-
-
+  boolean existsByCommentIdAndUserId(UUID commentId, UUID requestUserId);
 }
