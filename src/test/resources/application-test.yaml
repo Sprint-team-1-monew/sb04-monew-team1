@@ -1,15 +1,21 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:discodeit;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
-    username: sa
-    password:
+    url: jdbc:postgresql://localhost:5432/monew
+    username: monew
+    password: monew1234
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none   # 이미 테이블 생성 완료
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
+        dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
+  batch:
+    jdbc:
+      initialize-schema: always
+    job:
+      enabled: true

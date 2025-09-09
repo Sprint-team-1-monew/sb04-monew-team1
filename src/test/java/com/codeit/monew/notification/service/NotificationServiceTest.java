@@ -1,7 +1,7 @@
-package com.codeit.monew.notification;
+package com.codeit.monew.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 
@@ -13,10 +13,10 @@ import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.repository.NotificationRepository;
-import com.codeit.monew.notification.service.NotificationService;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -214,5 +214,81 @@ public class NotificationServiceTest {
 
     // then
     notifications.forEach(notification -> assertThat(notification.isConfirmed()).isTrue());
+  }
+
+  @Test
+  void should_deleteOldConfirmedNotifications_when_theyExist() {
+    // given
+    LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+
+    User user = User.builder()
+        .email("test@example.com")
+        .nickname("테스터")
+        .password("password")
+        .build();
+
+    Notification oldConfirmed = Notification.builder()
+        .user(user)
+        .confirmed(true) // 삭제 대상
+        .content("알림1")
+        .resourceType(ResourceType.COMMENT)
+        .resourceId(UUID.randomUUID())
+        .updatedAt(weekAgo.minusDays(1)) // 1주일보다 오래됨
+        .build();
+
+    List<Notification> notifications = List.of(oldConfirmed);
+
+    given(notificationRepository.findByConfirmedTrueAndUpdatedAtBefore(any(LocalDateTime.class)))
+        .willReturn(notifications);
+
+    // when
+    notificationService.deleteOldConfirmNotifications();
+
+    // then
+    then(notificationRepository).should(times(1)).deleteAll(notifications);
+  }
+
+  @Test
+  void should_notDeleteAnything_when_noOldConfirmedNotificationsExist() {
+    // given
+    given(notificationRepository.findByConfirmedTrueAndUpdatedAtBefore(any(LocalDateTime.class)))
+        .willReturn(List.of());
+
+    // when
+    notificationService.deleteOldConfirmNotifications();
+
+    // then
+    then(notificationRepository).should(never()).deleteAll(anyList());
+  }
+
+  @Test
+  void should_notDeleteUnconfirmedNotifications_evenIfOld() {
+    // given
+    LocalDateTime weekAgo = LocalDateTime.now().minusDays(7);
+
+    User user = User.builder()
+        .email("test@example.com")
+        .nickname("테스터")
+        .password("password")
+        .build();
+
+    Notification unconfirmed = Notification.builder()
+        .user(user)
+        .confirmed(false) // 삭제 대상 아님
+        .content("알림2")
+        .resourceType(ResourceType.COMMENT)
+        .resourceId(UUID.randomUUID())
+        .updatedAt(weekAgo.minusDays(2))
+        .build();
+
+    // repository는 confirmed=true 인 알림만 반환하므로 빈 리스트
+    given(notificationRepository.findByConfirmedTrueAndUpdatedAtBefore(any(LocalDateTime.class)))
+        .willReturn(List.of());
+
+    // when
+    notificationService.deleteOldConfirmNotifications();
+
+    // then
+    then(notificationRepository).should(never()).deleteAll(anyList());
   }
 }
