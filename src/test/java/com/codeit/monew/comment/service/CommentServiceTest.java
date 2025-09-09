@@ -246,7 +246,7 @@ public class CommentServiceTest {
         .article(dummyArticle)
         .build();
 
-    given(commentRepository.findComments(eq(articleId), eq(CommentOrderBy.CREATED_AT), eq(
+    given(commentRepositoryCustom.findComments(eq(articleId), eq(CommentOrderBy.CREATED_AT), eq(
         SortDirection.DESC), any(String.class), any(LocalDateTime.class), eq(10))).willReturn(
         List.of(mappedEntity));
 
