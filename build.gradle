@@ -56,6 +56,13 @@ dependencies {
     testImplementation 'org.assertj:assertj-core:3.25.3'
     testImplementation 'org.mockito:mockito-core:5.12.0'
     testImplementation 'com.squareup.okhttp3:mockwebserver:4.12.0'
+
+    testImplementation 'org.assertj:assertj-core:3.26.3' // assertj
+
+    //spring batch
+    implementation 'org.springframework.boot:spring-boot-starter-batch'
+    implementation 'org.springframework.boot:spring-boot-starter-quartz'
+    testImplementation 'org.springframework.batch:spring-batch-test'
 }
 
 tasks.named('test') {
