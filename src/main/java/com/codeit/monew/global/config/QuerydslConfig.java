@@ -1,4 +1,4 @@
-package com.codeit.monew.interest.config;
+package com.codeit.monew.global.config;
 
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
