@@ -1,17 +1,16 @@
 package com.codeit.monew.article.service;
 
 import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.entity.ArticlesViewUser;
 import com.codeit.monew.article.mapper.ArticleMapper;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
+import com.codeit.monew.article.response_dto.ArticleViewDto;
 import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
-import com.codeit.monew.exception.article.ArticleException;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
-import com.querydsl.core.types.Order;
-import com.querydsl.core.types.OrderSpecifier;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -104,6 +103,42 @@ public class ArticleService {
     return new CursorPageResponseArticleDto(content, nextCursor, nextAfter, size, totalElements, hasNex);
   }
 
+  public ArticleViewDto getArticleViewDto(UUID articleId, UUID requestUserId) {
+    log.info("기사 뷰 DTO 조회 시작 - articleId={}, requestUserId={}", articleId, requestUserId);
+    Article article = checkArticle(articleId);
+    User user = checkUser(requestUserId);
+
+    log.info("기사 뷰 기록 조회 시작 - articleId={}, userId={}", articleId, requestUserId);
+    Optional<ArticlesViewUser> found = articleViewUserRepository.findByArticleAndUser(article, user);
+
+    ArticlesViewUser viewUser;
+    if (found.isPresent()) {
+      viewUser = found.get();
+      log.info("기사 뷰 기록 존재 - viewId={}, viewedAt={}", viewUser.getId(), viewUser.getCreatedAt());
+    } else {
+      viewUser = articleViewUserRepository.save(new ArticlesViewUser(article, user));
+      log.info("기사 뷰 기록 생성 - viewId={}, viewedAt={}", viewUser.getId(), viewUser.getCreatedAt());
+    }
+
+    ArticleViewDto dto = new ArticleViewDto(
+        articleId,
+        requestUserId,
+        viewUser.getCreatedAt(),
+        article.getSource(),
+        article.getSourceUrl(),
+        article.getArticleTitle(),
+        article.getArticlePublishDate(),
+        article.getArticleSummary(),
+        article.getArticleCommentCount(),
+        article.getArticleViewCount()
+    );
+
+    log.info("기사 뷰 DTO 조회 완료 - articleId={}, requestUserId={}, viewedAt={}",
+        articleId, requestUserId, viewUser.getCreatedAt());
+
+    return dto;
+  }
+
   private Article checkArticle(UUID articleId) {
     log.info("기사 존재 검증 시작 {}", articleId);
     Article article = articleRepository.findById(articleId)
@@ -116,4 +151,18 @@ public class ArticleService {
     log.info("기사 존재 검증 완료 {}", articleId);
     return article;
   }
+
+  private User checkUser(UUID userId) {
+    log.info("유저 존재 검증 시작 {}", userId);
+    User user = userRepository.findById(userId)
+        .orElseThrow(() -> {
+          log.info("유저가 없습니다 {}", userId);
+          Map<String, Object> details = new HashMap<>();
+          details.put("이유", userId + " 유저는 존재하지 않습니다.");
+          return new ArticleNotFoundException(details); // 유저 낫 파운드 이셉션으로 변경하기
+        });
+    log.info("유저 존재 검증 완료 {}", userId);
+    return user;
+  }
+
 }
