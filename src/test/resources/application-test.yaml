@@ -1,9 +1,10 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:monew;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS public
+    url: jdbc:h2:mem:monew;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -13,17 +14,22 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+
   batch:
     job:
       enabled: true
     jdbc:
       initialize-schema: always
+
+  task:
+    scheduling:
+      enabled: false  # @Scheduled 비활성화
+
+  quartz:
+    job-store-type: memory  # Quartz 메모리 모드
+    auto-startup: false     # 스케줄러 자동 시작 금지
+
   sql:
     init:
       mode: always
       schema-locations: classpath:schema-h2.sql
-  quartz:
-    job-store-type: memory
-    auto-startup: false
-  main:
-    allow-bean-definition-overriding: true
