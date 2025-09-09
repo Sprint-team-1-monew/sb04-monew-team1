@@ -25,7 +25,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-@SpringBootTest
+@SpringBootTest(properties = {
+    "spring.task.scheduling.enabled=false",
+    "spring.quartz.job-store-type=memory",
+    "spring.quartz.auto-startup=false"
+})
 @SpringBatchTest
 @ActiveProfiles("test")
 class NotificationCleanupJobTest {
