@@ -4,15 +4,16 @@ import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.mapper.CommentMapper;
 import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
-import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
+import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.exception.comment.CommentErrorCode;
-import com.codeit.monew.exception.comment.CommentNotFoundException;
+import com.codeit.monew.exception.comment.CommentException;
+import com.codeit.monew.user.exception.UserErrorCode;
+import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
-import com.codeit.monew.user.service.UserService;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.UUID;
@@ -40,11 +41,11 @@ public class CommentService {
     Comment commentEntity = commentMapper.toCommentEntity(commentRegisterRequest);
 
     if (!userRepository.existsById(commentEntity.getUser().getId())) {
-      throw new IllegalArgumentException("사용자 ID가 존재하지 않습니다.");
+      throw new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", commentEntity.getUser().getId()));
     }
 
     if (!articleRepository.existsById(commentEntity.getArticle().getId())) {
-      throw new IllegalArgumentException("기사가 존재하지 않습니다.");
+      throw new ArticleNotFoundException(Map.of("ArticleId", commentEntity.getArticle().getId()));
     }
 
     Comment saved = commentRepository.save(commentEntity);
@@ -59,12 +60,11 @@ public class CommentService {
     log.info("댓글 수정 시작 : {}", commentId);
     //댓글 유효 검증
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
-            Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
 
     //사용자 본인 인지 검증
     if (!comment.getUser().getId().equals(userId)) {
-      throw new IllegalArgumentException("본인만 수정할 수 있습니다.");
+      throw new CommentException(CommentErrorCode.IDENTITY_VERIFICATION_EXCEPTION, Map.of("userId", userId));
     }
 
     //댓글 업데이트
@@ -78,8 +78,7 @@ public class CommentService {
   public void softDeleteComment(UUID commentId) {
     log.info("댓글 논리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
-            Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
 
     comment.setIsDeleted(true);
     comment.setDeletedAt(LocalDateTime.now());
@@ -92,8 +91,7 @@ public class CommentService {
   public void hardDeleteComment(UUID commentId) {
     log.info("댓글 물리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new CommentNotFoundException(CommentErrorCode.COMMENT_NOT_FOUND,
-            Map.of("commentId", commentId)));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
 
     commentLikeQuerydslRepository.deleteByCommentId(commentId);
 
