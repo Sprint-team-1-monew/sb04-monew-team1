@@ -1,6 +1,7 @@
 package com.codeit.monew.interest.service;
 
 import static com.codeit.monew.exception.interest.InterestErrorCode.INTEREST_NAME_DUPLICATION;
+import static com.codeit.monew.exception.interest.InterestErrorCode.INTEREST_NOT_FOUND;
 
 import com.codeit.monew.exception.interest.InterestException;
 import com.codeit.monew.interest.entity.Interest;
@@ -9,6 +10,7 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
@@ -59,7 +61,7 @@ public class InterestService {
             .interest(savedInterest)
             .deletedAt(false)
             .build())
-            .collect(Collectors.toList());
+        .collect(Collectors.toList());
 
     keywordRepository.saveAll(keywords);
 
@@ -78,10 +80,11 @@ public class InterestService {
   ) {
     User user = userRepository.findById(requestUserId)
         .orElseThrow(
-            () -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", requestUserId.toString())));
+            () -> new UserException(UserErrorCode.USER_NOT_FOUND,
+                Map.of("userId", requestUserId.toString())));
 
     List<Interest> interests = interestRepository.findInterestsWithCursor(
-        keyword, orderBy, direction, cursor,after, limit
+        keyword, orderBy, direction, cursor, after, limit
     );
 
     boolean hasNext = interests.size() > limit;
@@ -90,11 +93,14 @@ public class InterestService {
     String nextCursor = nextInterest != null ? nextInterest.getId().toString() : null;
     LocalDateTime nextAfter = nextInterest != null ? nextInterest.getCreatedAt() : null;
 
-    if (hasNext) interests.remove(limit);
+    if (hasNext) {
+      interests.remove(limit);
+    }
 
     List<InterestDto> interestDtos = interests.stream()
         .map(interest -> {
-          List<Keyword> keywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interest.getId());
+          List<Keyword> keywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(
+              interest.getId());
           boolean subscribedByMe = subscriptionRepository.existsByUserAndInterest(user, interest);
           return interestMapper.toDto(interest, keywords, subscribedByMe);
         }).toList();
@@ -111,6 +117,29 @@ public class InterestService {
     );
   }
 
+  @Transactional
+  public InterestDto updateInterest(UUID interestId, InterestUpdateRequest request) {
+    Interest interest = interestRepository.findById(interestId)
+        .orElseThrow(() -> new InterestException(INTEREST_NOT_FOUND,
+            Map.of("interestId", interestId.toString())));
+
+    List<Keyword> existingKeywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(
+        interestId);
+    existingKeywords.forEach(keyword -> keyword.setDeletedAt(true));
+    keywordRepository.saveAll(existingKeywords);
+
+    List<Keyword> newKeywords = request.keywords().stream()
+        .map(keywordStr -> Keyword.builder()
+            .keyword(keywordStr)
+            .interest(interest)
+            .deletedAt(false)
+            .build())
+        .collect(Collectors.toList());
+
+    keywordRepository.saveAll(newKeywords);
+
+    return interestMapper.toDto(interest, newKeywords,null);
+  }
 
   private void validateSimilarNameExists(String name) {
     List<Interest> existingInterests = interestRepository.findAllByIsDeletedFalse();

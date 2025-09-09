@@ -1,6 +1,7 @@
 package com.codeit.monew.interest.controller;
 
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.interest.service.InterestService;
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -51,6 +53,15 @@ public class InterestController {
         keyword, orderBy, direction, cursor, after, limit, requestUserId
     );
     return ResponseEntity.ok(response);
+  }
+  
+  @PatchMapping("/{interestId}")
+  public ResponseEntity<InterestDto> updateInterest(
+      @PathVariable UUID interestId,
+      @RequestBody InterestUpdateRequest request
+  ) {
+    InterestDto result = interestService.updateInterest(interestId, request);
+    return ResponseEntity.ok(result);
   }
 
   @PostMapping("/{interestId}/subscriptions")

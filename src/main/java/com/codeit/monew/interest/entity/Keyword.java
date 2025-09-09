@@ -11,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -25,6 +26,7 @@ public class Keyword extends BaseUpdatableEntity {
   private String keyword;
 
   @Column(name = "deleted_at")
+  @Setter
   private Boolean deletedAt;
 
   @ManyToOne(fetch = FetchType.LAZY)
