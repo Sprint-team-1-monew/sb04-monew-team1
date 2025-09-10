@@ -1,59 +1,53 @@
-name: CD
-run-name: ${{ github.event.workflow_run.name }}
+# cd, ECS에 배포하기
 
+name: CD Workflow
+
+#CI가 완료되면 main에서만 ECS에 배포되게끔 구현
 on:
   workflow_run:
-    workflows: [ "CI" ]
-    types:
-      - completed
-    branches: [ dev ]
+    workflows: ["CI Workflow"]
+    types: [completed]
+    branches: [dev, main]
+
+# 환경변수 정의
+env:
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+  IMAGE: ${{ secrets.AWS_ECR_URL }}
+  ECS_CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }}
+  ECS_SERVICE: ${{ secrets.AWS_ECS_SERVICE_NAME }}
+  ECS_TASK_FAMILY: ${{ secrets.AWS_ECS_TASK_DEFINITION }}
+  CONTAINER_NAME: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
+
 
 jobs:
-  deploy:
+  desploy:
+    # CD workflows가 workflow_run에 의해 호출되고 CI가 성공일경우에만 배포
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    env:
-      ECS_CLUSTER: cluster-monew
-      ECS_SERVICE: monew-task-service-13fqphcy
-      ECS_TASK_FAMILY: monew-task
-      CONTAINER_NAME: monew-app
-      IMAGE: public.ecr.aws/w7n1o6b8/monew
-      AWS_REGION: ap-northeast-2
     steps:
-      - uses: actions/checkout@v4
+        - uses: actions/checkout@v4
 
-      - name: AWS ECS Configure
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
+        - name: AWS ECS Configure(AWS 인증)
+          uses: aws-actions/configure-aws-credentials@v4
+          with:
+            aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+            aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+            aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Stop running ECS tasks
-        run: |
-          CLUSTER="${{ env.ECS_CLUSTER }}"
-          SERVICE="${{ env.ECS_SERVICE }}"
-          TASKS=$(aws ecs list-tasks --cluster $CLUSTER --service-name $SERVICE --desired-status RUNNING --query 'taskArns' --output text)
-          if [ -n "$TASKS" ]; then
-            echo "Stopping running tasks: $TASKS"
-            for TASK in $TASKS; do
-              aws ecs stop-task --cluster $CLUSTER --task $TASK
-            done
-          else
-            echo "No running tasks found."
-          fi
+        # ECS 태스크 정의 파일 만들기(컨테이너의 이미지 활용)
+        - name: Task Definition file Rendering
+          id: render
+          uses: aws-actions/amazon-ecs-render-task-definition@v1
+          with:
+            task-definition: ecs/taskdef-base.json
+            container-name: ${{ env.CONTAINER_NAME }}
+            image: ${{ env.IMAGE }}:latest
 
-      - name: Task Definition file Rendering
-        id: render
-        uses: aws-actions/amazon-ecs-render-task-definition@v1
-        with:
-          task-definition: ecs/taskdef-base.json
-          container-name: ${{ env.CONTAINER_NAME }}
-          image: ${{ env.IMAGE }}:latest
-
-      - name: ECS Deploy
-        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
-        with:
-          task-definition: ecs/taskdef-base.json
-          service: ${{ env.ECS_SERVICE }}
-          cluster: ${{ env.ECS_CLUSTER }}
-          wait-for-service-stability: true
+        # 새롭게 만든 ECS 태스크 정의를 등록하기, ECS에 새 태스크 정의 적용
+        - name: ECS Deploy
+          uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+          with:
+            task-definition: ${{ steps.render.outputs.task-definition }} # 위의 render 참조
+            service: ${{ env.ECS_SERVICE }}
+            cluster: ${{ env.ECS_CLUSTER }}
+            wait-for-service-stability: true # 새로운 서비스가 안정화 될 때까지 기다림
