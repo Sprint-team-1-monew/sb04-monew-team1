@@ -22,6 +22,7 @@ import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -113,14 +114,8 @@ public class ArticleService {
     log.info("기사 뷰 기록 조회 시작 - articleId={}, userId={}", articleId, requestUserId);
     Optional<ArticlesViewUser> found = articleViewUserRepository.findByArticleAndUser(article, user);
 
-    ArticlesViewUser viewUser;
-    if (found.isPresent()) {
-      viewUser = found.get();
-      log.info("기사 뷰 기록 존재 - viewId={}, viewedAt={}", viewUser.getId(), viewUser.getCreatedAt());
-    } else {
-      viewUser = articleViewUserRepository.save(new ArticlesViewUser(article, user));
-      log.info("기사 뷰 기록 생성 - viewId={}, viewedAt={}", viewUser.getId(), viewUser.getCreatedAt());
-    }
+    ArticlesViewUser viewUser = articleViewUserRepository.findByArticleAndUser(article, user)
+        .orElseGet(() -> createViewUserSafely(article, user));
 
     ArticleViewDto dto = articleViewMapper.toDto(
       article, user.getId(), viewUser.getCreatedAt()
@@ -130,6 +125,23 @@ public class ArticleService {
         articleId, requestUserId, viewUser.getCreatedAt());
 
     return dto;
+  }
+
+  protected ArticlesViewUser createViewUserSafely(Article article, User user) {
+    try {
+      ArticlesViewUser saved = articleViewUserRepository.save(new ArticlesViewUser(article, user));
+      articleViewUserRepository.flush(); // 감사필드(createdAt) 채워짐 보장
+      log.info("기사 뷰 기록 생성 - viewId={}, viewedAt={}", saved.getId(), saved.getCreatedAt());
+      return saved;
+    } catch (DataIntegrityViolationException ex) {
+      // 다른 쓰레드가 동시에 먼저 삽입 → 기존 레코드 재조회
+      ArticlesViewUser existing = articleViewUserRepository
+          .findByArticleAndUser(article, user)
+          .orElseThrow(() -> ex); // 정말 다른 예외면 그대로 던짐
+      log.info("동시성 충돌 감지: 기존 뷰 기록 사용 - viewId={}, viewedAt={}",
+          existing.getId(), existing.getCreatedAt());
+      return existing;
+    }
   }
 
   private Article checkArticle(UUID articleId) {
