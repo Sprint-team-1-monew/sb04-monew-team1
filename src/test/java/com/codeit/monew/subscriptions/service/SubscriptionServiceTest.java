@@ -92,7 +92,7 @@ class SubscriptionServiceTest {
         Keyword.builder().id(UUID.randomUUID()).keyword("자바").interest(mockInterest).build(),
         Keyword.builder().id(UUID.randomUUID()).keyword("스프링").interest(mockInterest).build()
     );
-    given(keywordRepository.findByInterestAndDeletedAtFalse(mockInterest)).willReturn(mockKeywords);
+    given(keywordRepository.findByInterestAndIsDeletedFalse(mockInterest)).willReturn(mockKeywords);
 
     // When
     SubscriptionDto result = subscriptionService.subscribe(userId, interestId);

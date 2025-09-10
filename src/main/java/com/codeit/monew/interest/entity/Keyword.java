@@ -11,7 +11,6 @@ import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
@@ -25,11 +24,14 @@ public class Keyword extends BaseUpdatableEntity {
   @Column(name = "keyword", nullable = false)
   private String keyword;
 
-  @Column(name = "deleted_at")
-  @Setter
-  private Boolean deletedAt;
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "interest_id", nullable = false)
   private Interest interest;
+
+  public void softDelete() {
+    this.isDeleted = true;
+  }
 }

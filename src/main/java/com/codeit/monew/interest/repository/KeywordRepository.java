@@ -12,7 +12,7 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
   
   List<Keyword> findByInterest(Interest interest); // 기사 쪽에서 쓰임
 
-  List<Keyword> findAllByInterest_IdAndDeletedAtFalse(UUID interestId);
+  List<Keyword> findAllByInterest_IdAndIsDeletedFalse(UUID interestId);
 
-  List<Keyword> findByInterestAndDeletedAtFalse(Interest interest);
+  List<Keyword> findByInterestAndIsDeletedFalse(Interest interest);
 }

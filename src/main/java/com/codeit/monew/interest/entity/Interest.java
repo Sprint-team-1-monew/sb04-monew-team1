@@ -37,4 +37,8 @@ public class Interest extends BaseUpdatableEntity {
     }
     this.subscriberCount -= 1;
   }
+
+  public void softDelete() {
+    this.isDeleted = true;
+  }
 }
