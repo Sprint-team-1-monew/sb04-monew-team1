@@ -64,6 +64,12 @@ public class InterestController {
     return ResponseEntity.ok(result);
   }
 
+  @DeleteMapping("/{interestId}")
+  public ResponseEntity<Void> deleteInterest(@PathVariable UUID interestId) {
+    interestService.softDeleteInterest(interestId);
+    return ResponseEntity.noContent().build();
+  }
+
   @PostMapping("/{interestId}/subscriptions")
   public ResponseEntity<SubscriptionDto> subscribeInterest(
       @PathVariable UUID interestId,

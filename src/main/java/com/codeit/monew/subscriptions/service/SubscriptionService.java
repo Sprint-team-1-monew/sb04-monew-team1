@@ -61,7 +61,7 @@ public class SubscriptionService {
     interest.increaseSubscriber();
 
     // 키워드 직접 조회
-    List<Keyword> keywords = keywordRepository.findByInterestAndDeletedAtFalse(interest);
+    List<Keyword> keywords = keywordRepository.findByInterestAndIsDeletedFalse(interest);
 
     return subscriptionMapper.toDto(saved, keywords);
   }
