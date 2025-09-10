@@ -2,12 +2,12 @@
 
 name: CD Workflow
 
-#CI가 완료되면 main에서만 ECS에 배포되게끔 구현
+#CI가 완료되면 일단 dev에서만 ECS에 배포되게끔 구현
 on:
   workflow_run:
     workflows: ["CI Workflow"]
     types: [completed]
-    branches: [dev, main]
+    branches: [dev]
 
 # 환경변수 정의
 env:
@@ -22,7 +22,7 @@ env:
 jobs:
   desploy:
     # CD workflows가 workflow_run에 의해 호출되고 CI가 성공일경우에만 배포
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+#    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
         - uses: actions/checkout@v4
