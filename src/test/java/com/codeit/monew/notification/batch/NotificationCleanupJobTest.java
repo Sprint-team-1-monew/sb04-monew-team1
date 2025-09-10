@@ -22,8 +22,6 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(properties = {
     "spring.task.scheduling.enabled=false",
@@ -31,7 +29,6 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
     "spring.quartz.auto-startup=false"
 })
 @SpringBatchTest
-@ActiveProfiles("test")
 class NotificationCleanupJobTest {
 
   @Autowired
@@ -43,8 +40,8 @@ class NotificationCleanupJobTest {
   @Autowired
   private UserRepository userRepository;
 
-  @MockitoBean
-  private NotificationCleanupScheduler notificationCleanupScheduler;
+//  @MockitoBean
+//  private NotificationCleanupScheduler notificationCleanupScheduler;
 
   @AfterEach
   void tearDown() {
@@ -62,7 +59,7 @@ class NotificationCleanupJobTest {
         .password("password")
         .userStatus(UserStatus.ACTIVE)
         .build();
-    userRepository.save(user);
+    userRepository.saveAndFlush(user); // ✅ flush 보장
 
     // 1. 삭제 대상: 확인했고, 8일 전에 업데이트됨
     Notification oldConfirmed = Notification.builder()
@@ -72,7 +69,7 @@ class NotificationCleanupJobTest {
         .resourceType(ResourceType.COMMENT)
         .resourceId(UUID.randomUUID())
         .build();
-    Notification toDelete = notificationRepository.save(oldConfirmed);
+    Notification toDelete = notificationRepository.saveAndFlush(oldConfirmed);
     notificationRepository.updateUpdatedAt(toDelete.getId(), LocalDateTime.now().minusDays(8));
 
     // 2. 삭제 대상 아님: 확인했지만 1일 전에 업데이트됨
@@ -83,7 +80,7 @@ class NotificationCleanupJobTest {
         .resourceType(ResourceType.COMMENT)
         .resourceId(UUID.randomUUID())
         .build();
-    Notification savedRecent = notificationRepository.save(recentConfirmed);
+    Notification savedRecent = notificationRepository.saveAndFlush(recentConfirmed);
     notificationRepository.updateUpdatedAt(savedRecent.getId(), LocalDateTime.now().minusDays(1));
 
     // 3. 삭제 대상 아님: 8일 전 알림이지만 확인 안 됨
@@ -94,8 +91,12 @@ class NotificationCleanupJobTest {
         .resourceType(ResourceType.COMMENT)
         .resourceId(UUID.randomUUID())
         .build();
-    Notification savedNotConfirmed = notificationRepository.save(notConfirmed);
+    Notification savedNotConfirmed = notificationRepository.saveAndFlush(notConfirmed);
     notificationRepository.updateUpdatedAt(savedNotConfirmed.getId(), LocalDateTime.now().minusDays(8));
+
+    // flush를 한 번 더 전체적으로 보장
+    notificationRepository.flush();
+    userRepository.flush();
 
     // when
     JobParameters jobParameters = jobLauncherTestUtils.getUniqueJobParameters();
