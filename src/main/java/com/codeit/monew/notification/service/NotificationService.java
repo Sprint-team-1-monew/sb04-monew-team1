@@ -10,6 +10,7 @@ import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
+import com.codeit.monew.notification.response_dto.NotificationDto;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -160,8 +162,52 @@ public class NotificationService {
     }
   }
 
-  public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId, String cursor,
-      LocalDateTime after, int limit) {
-    return null;
+  public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId,
+      String cursor,
+      LocalDateTime after,
+      int limit) {
+
+    UUID cursorId = cursor != null ? UUID.fromString(cursor) : null;
+
+    List<Notification> notifications = notificationRepository.findUnconfirmedNotifications(
+        userId,
+        after,
+        cursorId,
+        PageRequest.of(0, limit)
+    );
+
+    List<NotificationDto> content = notifications.stream()
+        .map(notification -> new NotificationDto(
+            notification.getId(),
+            notification.getCreatedAt(),
+            notification.getUpdatedAt(),
+            notification.isConfirmed(),
+            notification.getUser().getId(),
+            notification.getContent(),
+            notification.getResourceType(),
+            notification.getResourceId()
+        ))
+        .toList();
+
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+    if (!notifications.isEmpty()) {
+      Notification last = notifications.get(notifications.size() - 1);
+      nextCursor = last.getId().toString();
+      nextAfter = last.getUpdatedAt();
+    }
+
+    Long totalElements = notificationRepository.countByUserIdAndConfirmedFalse(userId);
+
+    boolean hasNext = notifications.size() > limit;
+
+    return new CursorPageResponseNotificationDto(
+        content,
+        nextCursor,
+        nextAfter,
+        notifications.size(),
+        totalElements,
+        hasNext
+    );
   }
 }

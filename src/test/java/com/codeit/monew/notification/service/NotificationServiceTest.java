@@ -2,6 +2,7 @@ package com.codeit.monew.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.never;
@@ -17,6 +18,7 @@ import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.repository.NotificationRepository;
+import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -28,6 +30,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
@@ -294,5 +297,62 @@ public class NotificationServiceTest {
 
     // then
     then(notificationRepository).should(never()).deleteAll(anyList());
+  }
+
+  @Test
+  void getUnconfirmedNotifications_success() {
+    // given
+    UUID userId = UUID.randomUUID();
+    UUID notificationId1 = UUID.randomUUID();
+    UUID notificationId2 = UUID.randomUUID();
+
+    LocalDateTime now = LocalDateTime.now();
+
+    Notification n1 = Notification.builder()
+        .id(notificationId1)
+        .user(User.builder().id(userId).build())
+        .confirmed(false)
+        .content("첫 번째 알림")
+        .resourceType(ResourceType.INTEREST)
+        .resourceId(UUID.randomUUID())
+        .createdAt(now.minusMinutes(10))
+        .updatedAt(now.minusMinutes(10))
+        .build();
+
+    Notification n2 = Notification.builder()
+        .id(notificationId2)
+        .user(User.builder().id(userId).build())
+        .confirmed(false)
+        .content("두 번째 알림")
+        .resourceType(ResourceType.COMMENT)
+        .resourceId(UUID.randomUUID())
+        .createdAt(now.minusMinutes(5))
+        .updatedAt(now.minusMinutes(5))
+        .build();
+
+    List<Notification> notifications = List.of(n1, n2);
+
+    // cursor와 after는 처음 조회라 null
+    given(notificationRepository.findUnconfirmedNotifications(
+        eq(userId), eq(null), eq(null), any(PageRequest.class))
+    ).willReturn(notifications);
+
+    given(notificationRepository.countByUserIdAndConfirmedFalse(userId)).willReturn(2L);
+
+    // when
+    CursorPageResponseNotificationDto result = notificationService.getUnconfirmedNotifications(
+        userId,
+        null,  // cursor
+        null,  // after
+        10     // limit
+    );
+
+    // then
+    assertThat(result).isNotNull();
+    assertThat(result.content()).hasSize(2);
+    assertThat(result.nextCursor()).isEqualTo(notificationId2.toString());
+    assertThat(result.nextAfter()).isEqualTo(n2.getCreatedAt());
+    assertThat(result.totalElements()).isEqualTo(2);
+    assertThat(result.hasNext()).isFalse(); // notifications.size() < limit
   }
 }
