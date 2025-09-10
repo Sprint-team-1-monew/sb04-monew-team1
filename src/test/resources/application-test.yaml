@@ -20,6 +20,8 @@ spring:
       enabled: false
     notification-cleanup:
       cron: "0 0 0 * * ?"
+    jdbc:
+      initialize-schema: always
 
   task:
     scheduling:
