@@ -44,7 +44,7 @@ public class ArticleController {
     return ResponseEntity.noContent().build();
   }
 
-  @GetMapping("/api/articles")
+  @GetMapping()
   public ResponseEntity<CursorPageResponseArticleDto> getArticles(
       @RequestParam(required = false) String keyword,
       @RequestParam(required = false) UUID interestId,

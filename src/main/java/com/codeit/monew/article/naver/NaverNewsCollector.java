@@ -10,9 +10,11 @@ import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -62,10 +64,10 @@ public class NaverNewsCollector {
 
   @Transactional
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
-  @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")// 매 분 마다
-  public void fetchAndSaveHourly() {
+  @Scheduled(cron = "3 * * * * *", zone = "Asia/Seoul")// 매 분 마다
+  public void fetchAndSaveHourly() throws InterruptedException {
     log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
-    int display = 10;
+    int display = 100; // 2의 n 제곱 -1
     int start = 1;
     String sort = "date";
 
@@ -74,30 +76,40 @@ public class NaverNewsCollector {
 
     for (Interest interest : interests) {
       Optional<Article> lastArticle = articleRepository.findTop1ByInterestOrderByArticlePublishDateDesc(interest);
+      boolean isPrior = false;
+      List<Article> sortedNaverNewsItems = new ArrayList<>();
       while(true){
         NaverNewsResponse naverNewsResponse = searchNews(interest.getName(), display, start, sort);
-        for (NaverNewsItem naverNewsItem : naverNewsResponse.items()) {
-          Article article = buildArticleFromNaverItem(naverNewsItem, interest);
-          if(isArticleDuplicated(article)){
+        for(NaverNewsItem naverNewsItem : naverNewsResponse.items()) {
+          Article newArticle = buildArticleFromNaverItem(naverNewsItem, interest);
+          if(isArticleDuplicated(newArticle)){
             continue; // 중복 되었으니 해당 아이템을 넘기고 다음 아이템으로
           }
-          articleRepository.save(article);
-        }
-        LocalDateTime itemPubDate = convertToLocalDateTime(naverNewsResponse.items().get(display-1).pubDate());
-        if (lastArticle.isPresent()){
-          if (itemPubDate.isAfter(lastArticle.get().getArticlePublishDate())) {
-            break; // 오른쪽(마지막 Article)이 더 최신이면 루프 종료
-          }
-        }
 
+          if (lastArticle.isPresent()){
+            if (newArticle.getArticlePublishDate().isAfter(lastArticle.get().getArticlePublishDate())) {
+              log.info("네이버 기사 발행일: {}, 저장된 마지막 기사 발행일: {}", newArticle.getArticlePublishDate(), lastArticle.get().getArticlePublishDate());
+              isPrior = true;
+              break;
+            }
+          }
+          sortedNaverNewsItems.add(newArticle);
+        }
         //다음 페이지로 (네이버는 start를 display만큼 더하기)
+        if (isPrior) break;
         start += display;
-        if (start > 1000) break; // 네이버 최대 start 보호
+        if (start > 1000) break;
+      }
+
+      for (int i = sortedNaverNewsItems.size() - 1; i >= 0; i--) {
+        articleRepository.save(sortedNaverNewsItems.get(i));
+        TimeUnit.MILLISECONDS.sleep(1); // createdAt 값이 유니크해져서 정렬하기 편해진다.
       }
     }
     log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
+    log.info("네이버 기사 수집 후 총 기사 개수: {}", articleRepository.count());
   }
-
+  // 관심사가 등록될 때 호출 할까?
   @Transactional
   protected Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
 
