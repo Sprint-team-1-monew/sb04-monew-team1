@@ -7,7 +7,6 @@ import org.springframework.batch.core.configuration.support.DefaultBatchConfigur
 import org.springframework.batch.core.job.builder.JobBuilder;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
-import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -16,22 +15,24 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class NotificationCleanupConfig extends DefaultBatchConfiguration {
 
   @Bean
-  public Job notificationCleanupJob(JobRepository jobRepository, Step cleanupStep) {
-    return new JobBuilder("notificationCleanupJob", jobRepository)
-        .start(cleanupStep)
-        .build();
+  public NotificationCleanupTasklet notificationCleanupTasklet(NotificationService notificationService) {
+    return new NotificationCleanupTasklet(notificationService);
   }
 
   @Bean
   public Step cleanupStep(JobRepository jobRepository,
       PlatformTransactionManager transactionManager,
-      NotificationService notificationService) {
+      NotificationCleanupTasklet notificationCleanupTasklet) {
 
     return new StepBuilder("cleanupStep", jobRepository)
-        .tasklet((contribution, chunkContext) -> {
-          notificationService.deleteOldConfirmNotifications();
-          return RepeatStatus.FINISHED;
-        }, transactionManager)
+        .tasklet(notificationCleanupTasklet, transactionManager)
+        .build();
+  }
+
+  @Bean
+  public Job notificationCleanupJob(JobRepository jobRepository, Step cleanupStep) {
+    return new JobBuilder("notificationCleanupJob", jobRepository)
+        .start(cleanupStep)
         .build();
   }
 }
