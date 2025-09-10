@@ -3,6 +3,7 @@ package com.codeit.monew.article.service;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.entity.ArticlesViewUser;
 import com.codeit.monew.article.mapper.ArticleMapper;
+import com.codeit.monew.article.mapper.ArticleViewMapper;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
@@ -33,6 +34,7 @@ public class ArticleService {
   private final ArticleMapper articleMapper;
   private final ArticleViewUserRepository articleViewUserRepository;
   private final UserRepository userRepository;
+  private final ArticleViewMapper articleViewMapper;
 
   public void softDeleteArticle(UUID articleId) {
     log.info("기사 논리 삭제 시작 {}", articleId);
@@ -120,17 +122,8 @@ public class ArticleService {
       log.info("기사 뷰 기록 생성 - viewId={}, viewedAt={}", viewUser.getId(), viewUser.getCreatedAt());
     }
 
-    ArticleViewDto dto = new ArticleViewDto(
-        articleId,
-        requestUserId,
-        viewUser.getCreatedAt(),
-        article.getSource(),
-        article.getSourceUrl(),
-        article.getArticleTitle(),
-        article.getArticlePublishDate(),
-        article.getArticleSummary(),
-        article.getArticleCommentCount(),
-        article.getArticleViewCount()
+    ArticleViewDto dto = articleViewMapper.toDto(
+      article, user.getId(), viewUser.getCreatedAt()
     );
 
     log.info("기사 뷰 DTO 조회 완료 - articleId={}, requestUserId={}, viewedAt={}",
