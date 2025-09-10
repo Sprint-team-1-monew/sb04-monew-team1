@@ -127,7 +127,7 @@ class InterestServiceTest {
     given(interestRepository.findInterestsWithCursor(keyword, orderBy, direction, cursor, after, limit))
         .willReturn(mockInterests);
 
-    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(any()))
+    given(keywordRepository.findAllByInterest_IdAndIsDeletedFalse(any()))
         .willReturn(List.of());
 
     given(subscriptionRepository.existsByUserAndInterest(mockUser, mockInterest)).willReturn(false);
