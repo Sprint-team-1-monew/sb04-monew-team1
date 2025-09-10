@@ -1,7 +1,7 @@
 package com.codeit.monew.comment.service;
 
-import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
+import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
