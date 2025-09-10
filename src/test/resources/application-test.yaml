@@ -34,4 +34,4 @@ spring:
   sql:
     init:
       mode: always          #  SQL 초기화 항상 실행
-      platform: h2          #  H2 전용 schema-h2.sql을 사용하도록 지정
+      schema-locations: classpath:schema-h2.sql
