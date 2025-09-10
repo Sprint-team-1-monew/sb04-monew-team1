@@ -21,7 +21,7 @@ spring:
     notification-cleanup:
       cron: "0 0 0 * * ?"
     jdbc:
-      initialize-schema: always
+      initialize-schema: always   #  H2용 배치 스키마 항상 실행
 
   task:
     scheduling:
@@ -33,4 +33,5 @@ spring:
 
   sql:
     init:
-      mode: never
+      mode: always          #  SQL 초기화 항상 실행
+      platform: h2          #  H2 전용 schema-h2.sql을 사용하도록 지정
