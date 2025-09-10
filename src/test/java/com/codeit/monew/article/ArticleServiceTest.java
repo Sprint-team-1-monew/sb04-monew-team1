@@ -11,6 +11,8 @@ import static org.mockito.Mockito.when;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.entity.ArticlesViewUser;
 import com.codeit.monew.article.mapper.ArticleMapper;
+import com.codeit.monew.article.mapper.ArticleViewMapper;
+import com.codeit.monew.article.mapper.ArticleViewMapperImpl;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
@@ -30,6 +32,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Spy;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
@@ -46,6 +49,9 @@ class ArticleServiceTest {
 
   @Mock
   ArticleMapper articleMapper;
+
+  @Spy
+  private ArticleViewMapper articleViewMapper = new ArticleViewMapperImpl();
 
   @InjectMocks
   ArticleService articleService; // 실제 서비스 클래스명으로 변경
