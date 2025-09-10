@@ -26,7 +26,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 @SpringBootTest(properties = {
     "spring.task.scheduling.enabled=false",
     "spring.quartz.job-store-type=memory",
-    "spring.quartz.auto-startup=false"
+    "spring.quartz.auto-startup=false",
+    "spring.batch.jdbc.initialize-schema=always"
 })
 @SpringBatchTest
 class NotificationCleanupJobTest {
@@ -39,9 +40,6 @@ class NotificationCleanupJobTest {
 
   @Autowired
   private UserRepository userRepository;
-
-//  @MockitoBean
-//  private NotificationCleanupScheduler notificationCleanupScheduler;
 
   @AfterEach
   void tearDown() {
