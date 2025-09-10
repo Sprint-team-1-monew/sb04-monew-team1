@@ -3,6 +3,7 @@ package com.codeit.monew.notification.batch;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import com.codeit.monew.article.naver.NaverNewsCollector;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.repository.NotificationRepository;
@@ -22,6 +23,7 @@ import org.springframework.batch.test.JobLauncherTestUtils;
 import org.springframework.batch.test.context.SpringBatchTest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
 @SpringBootTest(properties = {
     "spring.task.scheduling.enabled=false",
@@ -40,6 +42,9 @@ class NotificationCleanupJobTest {
 
   @Autowired
   private UserRepository userRepository;
+
+  @MockitoBean
+  private NaverNewsCollector naverNewsCollector;
 
   @AfterEach
   void tearDown() {
