@@ -1,8 +1,12 @@
 package com.codeit.monew.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.BDDMockito.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.BDDMockito.anyList;
+import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.never;
+import static org.mockito.BDDMockito.then;
+import static org.mockito.BDDMockito.times;
 import static org.mockito.Mockito.mock;
 
 import com.codeit.monew.article.entity.Article;
@@ -15,26 +19,18 @@ import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
-
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.util.ReflectionTestUtils;
 
-@SpringBootTest(properties = {
-    "spring.task.scheduling.enabled=false",
-    "spring.quartz.job-store-type=memory",
-    "spring.quartz.auto-startup=false"
-})
 @ActiveProfiles("test")
 @ExtendWith(MockitoExtension.class)
 public class NotificationServiceTest {
