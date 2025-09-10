@@ -104,5 +104,14 @@ public class CommentController {
     return ResponseEntity.status(HttpStatus.OK).body(commentLikeDto);
   }
 
+  @DeleteMapping(path = "/{commentId}/comment-likes")
+  public ResponseEntity<Void> deleteCommentLike(@PathVariable("commentId") UUID commentId,
+      @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
+
+    commentService.deleteCommentLike(commentId, requestUserId);
+
+    return ResponseEntity.noContent().build();
+  }
+
 
 }
