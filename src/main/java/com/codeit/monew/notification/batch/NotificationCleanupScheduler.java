@@ -17,7 +17,7 @@ public class NotificationCleanupScheduler {
   private final JobLauncher jobLauncher;
   private final Job notificationCleanupJob;
 
-  @Scheduled(cron = "${spring.batch.notification-cleanup.cron}")
+  @Scheduled(cron = "0 0 0 * * ?")
   public void runJob() throws Exception {
     try {
       JobParameters jobParameters = new JobParametersBuilder()
