@@ -127,6 +127,10 @@ public class ArticleService {
     return dto;
   }
 
+  public List<String> findSources(){
+    return articleRepository.findDistinctSources();
+  }
+
   protected ArticlesViewUser createViewUserSafely(Article article, User user) {
     try {
       ArticlesViewUser saved = articleViewUserRepository.save(new ArticlesViewUser(article, user));
