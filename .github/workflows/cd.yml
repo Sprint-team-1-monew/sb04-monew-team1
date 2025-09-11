@@ -9,13 +9,13 @@ on:
     types: [completed]
     branches: [dev]
 
-# 환경변수 정의
+# 환경변수 정의 : aws 지역, ECS의 url, ECS 클러스터 이름, ECS 서비스 이름, ECS 태스크 정의 이름, ECS 태스크 정의 - > 컨테이너 이름
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }} # aws 지역
-  IMAGE: ${{ secrets.AWS_ECR_URL }} # ECR의 url
-  ECS_CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }} # ECS 클러스터 이름
-  ECS_SERVICE: ${{ secrets.AWS_ECS_SERVICE_NAME }} # ECS 서비스 이름
-  ECS_TASK_FAMILY: ${{ secrets.AWS_ECS_TASK_DEFINITION }} # ECS 태스크 정의 이름
+  AWS_REGION: ap-northeast-2
+  IMAGE: public.ecr.aws/w7n1o6b8/monew
+  ECS_CLUSTER: cluster-monew
+  ECS_SERVICE: monew-task-service-ldy1dnpu
+  ECS_TASK_FAMILY: monew-task
   CONTAINER_NAME: monew-app # ECS 태스크 정의 -> 컨테이너 이름
 
 
@@ -39,15 +39,15 @@ jobs:
           id: render
           uses: aws-actions/amazon-ecs-render-task-definition@v1
           with:
-            task-definition: ecs/taskdef-base.json
-            container-name: ${{ env.CONTAINER_NAME }}
-            image: ${{ env.IMAGE }}:latest
+            task-definition: ecs/monew-task-revision3.json
+            container-name: monew-app
+            image: public.ecr.aws/w7n1o6b8/monew:latest
 
         # 새롭게 만든 ECS 태스크 정의를 등록하기, ECS에 새 태스크 정의 적용
         - name: ECS Deploy
           uses: aws-actions/amazon-ecs-deploy-task-definition@v2
           with:
-            task-definition: ${{ steps.render.outputs.task-definition }} # 위의 render 참조
-            service: ${{ env.ECS_SERVICE }}
-            cluster: ${{ env.ECS_CLUSTER }}
+            task-definition: ecs/monew-task-revision3.json # 위의 render 참조
+            service: monew-task-service-ldy1dnpu
+            cluster: cluster-monew
             wait-for-service-stability: true # 새로운 서비스가 안정화 될 때까지 기다림
