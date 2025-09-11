@@ -17,6 +17,7 @@ import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
+import com.codeit.monew.notification.mapper.NotificationMapper;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
 import com.codeit.monew.user.entity.User;
@@ -49,6 +50,9 @@ public class NotificationServiceTest {
 
   @Mock
   private CommentRepository commentRepository;
+
+  @Mock
+  private NotificationMapper notificationMapper;
 
   @InjectMocks
   private NotificationService notificationService;

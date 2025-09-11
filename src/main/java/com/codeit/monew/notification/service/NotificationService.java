@@ -8,6 +8,7 @@ import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
+import com.codeit.monew.notification.mapper.NotificationMapper;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
 import com.codeit.monew.notification.response_dto.NotificationDto;
@@ -32,6 +33,7 @@ public class NotificationService {
   private final InterestRepository interestRepository;
   private final NotificationRepository notificationRepository;
   private final CommentRepository commentRepository;
+  private final NotificationMapper notificationMapper;
 
   public Notification createInterestArticleNotification(UUID userId,
       UUID interestId,
@@ -177,16 +179,7 @@ public class NotificationService {
     );
 
     List<NotificationDto> content = notifications.stream()
-        .map(notification -> new NotificationDto(
-            notification.getId(),
-            notification.getCreatedAt(),
-            notification.getUpdatedAt(),
-            notification.isConfirmed(),
-            notification.getUser().getId(),
-            notification.getContent(),
-            notification.getResourceType(),
-            notification.getResourceId()
-        ))
+        .map(notificationMapper::toDto)
         .toList();
 
     String nextCursor = null;
