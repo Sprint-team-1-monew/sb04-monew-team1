@@ -12,8 +12,6 @@ import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.stereotype.Component;
 
-import jakarta.annotation.PostConstruct;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -21,25 +19,16 @@ public class NotificationCleanupTasklet implements Tasklet {
 
   private final NotificationService notificationService;
   private final MeterRegistry meterRegistry;
-  private Counter deletedNotificationCounter;
-
-  // 앱 시작 시 메트릭 초기화
-  @PostConstruct
-  public void initMetrics() {
-    deletedNotificationCounter = Counter.builder("notification.cleanup.deleted.count")
-        .description("Deleted notifications count for cleanup batch")
-        .register(meterRegistry);
-    // 초기값 0
-    deletedNotificationCounter.increment(0);
-  }
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
+    // 삭제된 알림 수 조회
     int deletedCount = notificationService.deleteOldConfirmNotifications();
     log.info("삭제된 알림 개수: {}", deletedCount);
 
-    // Micrometer Counter 증가
-    deletedNotificationCounter.increment(deletedCount);
+    // Tasklet 안에서 Counter 생성 후 increment
+    Counter counter = meterRegistry.counter("notification.cleanup.deleted.count");
+    counter.increment(deletedCount);
 
     contribution.setExitStatus(ExitStatus.COMPLETED);
     return RepeatStatus.FINISHED;
