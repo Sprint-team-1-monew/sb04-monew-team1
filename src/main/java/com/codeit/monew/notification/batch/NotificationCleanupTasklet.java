@@ -1,6 +1,7 @@
 package com.codeit.monew.notification.batch;
 
 import com.codeit.monew.notification.service.NotificationService;
+import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
