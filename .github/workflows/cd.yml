@@ -14,7 +14,7 @@ env:
   AWS_REGION: ap-northeast-2
   IMAGE: public.ecr.aws/w7n1o6b8/monew
   ECS_CLUSTER: cluster-monew
-  ECS_SERVICE: monew-task-service-ldy1dnpu
+  ECS_SERVICE: monew-task-service-13fqphcy
   ECS_TASK_FAMILY: monew-task
   CONTAINER_NAME: monew-app # ECS 태스크 정의 -> 컨테이너 이름
 

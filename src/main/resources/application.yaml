@@ -15,3 +15,5 @@ spring:
     open-in-view: false
   profiles:
     active: dev
+  application:
+    name: monew-app
