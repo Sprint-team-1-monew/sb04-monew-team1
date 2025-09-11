@@ -153,7 +153,7 @@ public class NotificationService {
     }
   }
 
-  public void deleteOldConfirmNotifications() {
+  public int deleteOldConfirmNotifications() {
     LocalDateTime weekAgo = LocalDateTime.now().minusDays(7).withNano(0);
 
     List<Notification> confirmedNotifications =
@@ -161,7 +161,9 @@ public class NotificationService {
 
     if (!confirmedNotifications.isEmpty()) {
       notificationRepository.deleteAll(confirmedNotifications);
+      return confirmedNotifications.size();
     }
+    return 0;
   }
 
   public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId,
