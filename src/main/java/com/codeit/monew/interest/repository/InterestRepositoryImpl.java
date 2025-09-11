@@ -72,6 +72,3 @@ public class InterestRepositoryImpl implements InterestRepositoryCustom {
     return isDesc ? interest.name.lt(cursor) : interest.name.gt(cursor);
   }
 }
-
-
-
