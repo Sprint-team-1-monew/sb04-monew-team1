@@ -11,12 +11,12 @@ on:
 
 # 환경변수 정의
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  IMAGE: ${{ secrets.AWS_ECR_URL }}
-  ECS_CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }}
-  ECS_SERVICE: ${{ secrets.AWS_ECS_SERVICE_NAME }}
-  ECS_TASK_FAMILY: ${{ secrets.AWS_ECS_TASK_DEFINITION }}
-  CONTAINER_NAME: ${{ secrets.AWS_ECS_CONTAINER_NAME }}
+  AWS_REGION: ${{ secrets.AWS_REGION }} # aws 지역
+  IMAGE: ${{ secrets.AWS_ECR_URL }} # ECR의 url
+  ECS_CLUSTER: ${{ secrets.AWS_ECS_CLUSTER }} # ECS 클러스터 이름
+  ECS_SERVICE: ${{ secrets.AWS_ECS_SERVICE_NAME }} # ECS 서비스 이름
+  ECS_TASK_FAMILY: ${{ secrets.AWS_ECS_TASK_DEFINITION }} # ECS 태스크 정의 이름
+  CONTAINER_NAME: monew-app # ECS 태스크 정의 -> 컨테이너 이름
 
 
 jobs:
