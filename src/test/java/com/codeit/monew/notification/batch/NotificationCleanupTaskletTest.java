@@ -8,6 +8,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.codeit.monew.notification.service.NotificationService;
+import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -27,20 +28,26 @@ class NotificationCleanupTaskletTest {
   private NotificationService notificationService;
 
   @Mock
+  private io.micrometer.core.instrument.Counter deletedNotificationCounter;
+
+  @Mock
   private MeterRegistry meterRegistry;
 
   @InjectMocks
   private NotificationCleanupTasklet tasklet;
 
   @Test
-  @DisplayName("Tasklet 실행 시 NotificationService 호출되고 ExitStatus=COMPLETED 이어야 한다")
-  void execute_shouldCallNotificationServiceAndReturnCompleted() throws Exception {
+  @DisplayName("Tasklet 실행 시 NotificationService 호출되고 Counter increment, ExitStatus=COMPLETED 확인")
+  void execute_shouldCallNotificationServiceAndIncrementCounter() throws Exception {
     // given
     StepContribution contribution = mock(StepContribution.class);
     ChunkContext chunkContext = mock(ChunkContext.class);
 
-    // meterRegistry.counter()가 호출되면 NPE 방지
-    io.micrometer.core.instrument.Counter counterMock = mock(io.micrometer.core.instrument.Counter.class);
+    // notificationService.deleteOldConfirmNotifications()가 5 반환
+    when(notificationService.deleteOldConfirmNotifications()).thenReturn(5);
+
+    // tasklet 내부 counter를 직접 주입
+    Counter counterMock = mock(Counter.class);
     when(meterRegistry.counter("notification.cleanup.deleted.count")).thenReturn(counterMock);
 
     // when
@@ -48,10 +55,8 @@ class NotificationCleanupTaskletTest {
 
     // then
     verify(notificationService, times(1)).deleteOldConfirmNotifications();
-    verify(counterMock, times(1)).increment(anyDouble());
-    assertThat(status).isEqualTo(RepeatStatus.FINISHED);
-
-    // ExitStatus=COMPLETED 명시적 세팅 확인
+    verify(counterMock, times(1)).increment(anyDouble()); // 삭제 개수 증가 호출 확인
     verify(contribution).setExitStatus(ExitStatus.COMPLETED);
+    assertThat(status).isEqualTo(RepeatStatus.FINISHED);
   }
 }
