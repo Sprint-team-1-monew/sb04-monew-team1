@@ -242,6 +242,19 @@ class ArticleServiceTest {
 
     // then
     assertThat(dto.id()).isEqualTo(articleId);
+  }
 
+  @Test
+  @DisplayName("source검색")
+  void findSources() {
+    // given
+    List<String> sources = List.of("NAVER", "DAUM");
+    when(articleRepository.findDistinctSources()).thenReturn(sources);
+
+    // when
+    List<String> result = articleService.findSources();
+
+    // then
+    assertThat(result).containsExactlyElementsOf(sources);
   }
 }
