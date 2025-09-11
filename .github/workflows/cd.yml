@@ -39,7 +39,7 @@ jobs:
           id: render
           uses: aws-actions/amazon-ecs-render-task-definition@v1
           with:
-            task-definition: ecs/monew-task-revision3.json
+            task-definition: ecs/taskdef-base.json
             container-name: monew-app
             image: public.ecr.aws/w7n1o6b8/monew:latest
 
@@ -47,7 +47,7 @@ jobs:
         - name: ECS Deploy
           uses: aws-actions/amazon-ecs-deploy-task-definition@v2
           with:
-            task-definition: ecs/monew-task-revision3.json # 위의 render 참조
+            task-definition: ecs/taskdef-base.json # 위의 render 참조
             service: monew-task-service-ldy1dnpu
             cluster: cluster-monew
             wait-for-service-stability: true # 새로운 서비스가 안정화 될 때까지 기다림
