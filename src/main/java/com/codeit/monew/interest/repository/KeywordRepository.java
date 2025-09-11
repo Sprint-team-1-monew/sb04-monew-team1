@@ -16,4 +16,3 @@ public interface KeywordRepository extends JpaRepository<Keyword, UUID> {
 
   List<Keyword> findByInterestAndDeletedAtFalse(Interest interest);
 }
-
