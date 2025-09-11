@@ -1,6 +1,5 @@
 package com.codeit.monew.notification.batch;
 
-import com.codeit.monew.notification.service.NotificationService;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.support.DefaultBatchConfiguration;
@@ -13,11 +12,6 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 public class NotificationCleanupConfig extends DefaultBatchConfiguration {
-
-  @Bean
-  public NotificationCleanupTasklet notificationCleanupTasklet(NotificationService notificationService) {
-    return new NotificationCleanupTasklet(notificationService);
-  }
 
   @Bean
   public Step cleanupStep(JobRepository jobRepository,

@@ -3,6 +3,7 @@ package com.codeit.monew.notification.batch;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.Job;
+import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.launch.JobLauncher;
@@ -17,14 +18,14 @@ public class NotificationCleanupScheduler {
   private final JobLauncher jobLauncher;
   private final Job notificationCleanupJob;
 
-  @Scheduled(cron = "${spring.batch.notification-cleanup.cron}")
+  @Scheduled(cron = "0 0 0 * * ?")
   public void runJob() throws Exception {
     try {
       JobParameters jobParameters = new JobParametersBuilder()
           .addLong("time", System.currentTimeMillis())
           .toJobParameters();
 
-      jobLauncher.run(notificationCleanupJob, jobParameters);
+      JobExecution execution = jobLauncher.run(notificationCleanupJob, jobParameters);
 
       log.info("알림 정리 배치 완료");
     } catch (Exception e) {
