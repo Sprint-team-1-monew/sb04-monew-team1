@@ -7,6 +7,7 @@ import com.codeit.monew.interest.entity.Keyword;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,7 +31,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
-public class HankyungCollector {
+public class ChoSunCollector {
 
   private final WebClient webClient;
   private final ArticleRepository articleRepository;
@@ -40,11 +41,11 @@ public class HankyungCollector {
   @Transactional
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
   @Scheduled(cron = "2 * * * * *", zone = "Asia/Seoul")// 매 분 마다
-  public void hankyungArticleFetchAndSaveHourly() throws Exception {
-    log.info("한국경제 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
+  public void chousunArticleFetchAndSaveHourly() throws Exception {
+    log.info("조선일보 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     List<Interest> interests = interestRepository.findAll();
 
-      List<RssItem> rssItems = getAllRss();
+    List<RssItem> rssItems = getAllRss();
     for (int i = rssItems.size() - 1; i >= 0; i--) {
       RssItem rssItem = rssItems.get(i);
       String summary = getArticleSummary(rssItem.link());
@@ -71,21 +72,21 @@ public class HankyungCollector {
         log.info("기사 명: {}, 기사 요약: {}, 발매일: {}, 저장일: {}", savedArticle.getArticleTitle(), savedArticle.getArticleSummary(), savedArticle.getArticlePublishDate(), savedArticle.getCreatedAt());
       }
     }
-    log.info("한국경제 기사 수집 스케줄링 수집 종료: {}", LocalDateTime.now());
+    log.info("조선일보 기사 수집 스케줄링 수집 종료: {}", LocalDateTime.now());
   }
 
   private boolean isArticleDuplicated(Article article) {
-    log.info("한국경제 기사 중복 검사 시작: {}", article.getSourceUrl());
+    log.info("조선일보 기사 중복 검사 시작: {}", article.getSourceUrl());
     Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
     if (articleOptional.isPresent()) {
-      log.info("한국경제 기사 중복 검사 발견: {}", article.getSourceUrl());
+      log.info("조선일보 기사 중복 검사 발견: {}", article.getSourceUrl());
       return true;
     }
-    log.info("한국경제 기사 중복 검사 종료: {}", article.getSourceUrl());
+    log.info("조선일보 기사 중복 검사 종료: {}", article.getSourceUrl());
     return false;
   }
 
-  public String getArticleSummary(String articleUrl) throws Exception {
+  public static String getArticleSummary(String articleUrl) throws Exception {
     Document doc = Jsoup.connect(articleUrl)
         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
             "(KHTML, like Gecko) Chrome/126.0 Safari/537.36")
@@ -93,7 +94,7 @@ public class HankyungCollector {
         .timeout(10000)
         .get();
 
-    Element sum = doc.selectFirst("div.summary");
+    Element sum = doc.selectFirst("p.font--primary font--size-md-20 font--size-sm-18 text--black");
     String summaryInnerHtml = (sum != null) ? sum.html() : "";
     summaryInnerHtml = summaryInnerHtml
         .replaceAll("\\R", "")        // 개행 제거
@@ -102,8 +103,8 @@ public class HankyungCollector {
     return summaryInnerHtml;
   }
 
-  public List<RssItem> getAllRss() throws Exception {
-    String xml = Jsoup.connect("https://www.hankyung.com/feed/all-news")
+  public static List<RssItem> getAllRss() throws Exception {
+    String xml = Jsoup.connect("https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml")
         .userAgent("Mozilla/5.0 (MonewBot)")
         .timeout(10000)
         .ignoreContentType(true)     // XML 응답
@@ -148,7 +149,11 @@ public class HankyungCollector {
   private static final DateTimeFormatter NAVER_DATE_FORMATTER =
       DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
-  private Article buildArticleFromHanKyungItem(RssItem rssItem, String summary, Interest interest) {
+  private LocalDateTime convertToLocalDateTime(String pubDate) {
+    return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
+  }
+
+  protected Article buildArticleFromHanKyungItem(RssItem rssItem, String summary, Interest interest) {
 
     List<Keyword> keywords = keywordRepository.findByInterest(interest);
 
@@ -161,7 +166,7 @@ public class HankyungCollector {
     }
 
     return Article.builder()
-        .source("HanKyung")
+        .source("ChoSun")
         .sourceUrl(rssItem.link())             // 뉴스 원문 URL
         .articleTitle(rssItem.title())                 // 뉴스 제목
         .articlePublishDate(rssItem.publishedAt()) // pubDate 문자열 → LocalDateTime
@@ -173,4 +178,9 @@ public class HankyungCollector {
         .build();
   }
 
+  public static void main(String[] args) throws Exception {
+    List<RssItem> rssItems = getAllRss();
+    String summary = getArticleSummary("https://www.chosun.com/politics/politics_general/2025/09/11/3CA4QSSBG5GHXNUBCUCZN5TCWI/");
+    System.out.println(summary);
+  }
 }
