@@ -94,4 +94,10 @@ public class ArticleController {
     log.info("기사 뷰 요청 완료 {}", articleId);
     return ResponseEntity.ok(articleDto);
   }
+
+  @GetMapping("/sources")
+  public ResponseEntity<List<String>> getSources(){
+    List<String> articlesSources = articleService.findSources();
+    return ResponseEntity.ok(articlesSources);
+  }
 }
