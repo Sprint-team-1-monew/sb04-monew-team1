@@ -1,9 +1,10 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:discodeit;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
-    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:monew;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false
     username: sa
     password:
+    driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
       ddl-auto: create-drop
@@ -13,3 +14,24 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.H2Dialect
     open-in-view: false
+
+  batch:
+    job:
+      enabled: false
+    notification-cleanup:
+      cron: "0 0 0 * * ?"
+    jdbc:
+      initialize-schema: always   #  H2용 배치 스키마 항상 실행
+
+  task:
+    scheduling:
+      enabled: false  # @Scheduled 비활성화
+
+  quartz:
+    job-store-type: memory  # Quartz 메모리 모드
+    auto-startup: false     # 스케줄러 자동 시작 금지
+
+  sql:
+    init:
+      mode: never          #  SQL 초기화 항상 실행
+      schema-locations: classpath:schema-h2.sql

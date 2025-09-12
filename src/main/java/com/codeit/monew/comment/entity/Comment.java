@@ -15,10 +15,11 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
 @Entity
-@Table(name = "Comments")
+@Table(name = "comments")
 @Getter
 @SuperBuilder
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
@@ -30,7 +31,8 @@ public class Comment extends BaseEntity {
 
   @Builder.Default
   @Column(name = "deleted", nullable = false)
-  private Boolean deleted = false;
+  @Setter
+  private Boolean isDeleted = false;
 
   @Builder.Default
   @Column(name = "like_count", nullable = false)
@@ -40,6 +42,7 @@ public class Comment extends BaseEntity {
   private LocalDateTime updatedAt;
 
   @Column(name = "deleted_at")
+  @Setter
   private LocalDateTime deletedAt;
 
   @ManyToOne(fetch = FetchType.LAZY)

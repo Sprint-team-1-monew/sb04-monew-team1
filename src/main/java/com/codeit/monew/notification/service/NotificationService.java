@@ -8,8 +8,10 @@ import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.notification.entity.Notification;
 import com.codeit.monew.notification.entity.ResourceType;
+import com.codeit.monew.notification.mapper.NotificationMapper;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
+import com.codeit.monew.notification.response_dto.NotificationDto;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -19,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -30,6 +33,7 @@ public class NotificationService {
   private final InterestRepository interestRepository;
   private final NotificationRepository notificationRepository;
   private final CommentRepository commentRepository;
+  private final NotificationMapper notificationMapper;
 
   public Notification createInterestArticleNotification(UUID userId,
       UUID interestId,
@@ -150,11 +154,53 @@ public class NotificationService {
   }
 
   public void deleteOldConfirmNotifications() {
+    LocalDateTime weekAgo = LocalDateTime.now().minusDays(7).withNano(0);
 
+    List<Notification> confirmedNotifications =
+        notificationRepository.findByConfirmedTrueAndUpdatedAtBefore(weekAgo);
+
+    if (!confirmedNotifications.isEmpty()) {
+      notificationRepository.deleteAll(confirmedNotifications);
+    }
   }
 
-  public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId, String cursor,
-      LocalDateTime after, int limit) {
-    return null;
+  public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId,
+      String cursor,
+      LocalDateTime after,
+      int limit) {
+
+    UUID cursorId = cursor != null ? UUID.fromString(cursor) : null;
+
+    List<Notification> notifications = notificationRepository.findUnconfirmedNotifications(
+        userId,
+        after,
+        cursorId,
+        PageRequest.of(0, limit)
+    );
+
+    List<NotificationDto> content = notifications.stream()
+        .map(notificationMapper::toDto)
+        .toList();
+
+    String nextCursor = null;
+    LocalDateTime nextAfter = null;
+    if (!notifications.isEmpty()) {
+      Notification last = notifications.get(notifications.size() - 1);
+      nextCursor = last.getId().toString();
+      nextAfter = last.getUpdatedAt();
+    }
+
+    Long totalElements = notificationRepository.countByUserIdAndConfirmedFalse(userId);
+
+    boolean hasNext = notifications.size() > limit;
+
+    return new CursorPageResponseNotificationDto(
+        content,
+        nextCursor,
+        nextAfter,
+        notifications.size(),
+        totalElements,
+        hasNext
+    );
   }
 }

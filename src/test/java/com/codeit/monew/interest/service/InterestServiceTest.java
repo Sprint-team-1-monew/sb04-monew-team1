@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
@@ -12,9 +14,17 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
+import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
+import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.repository.UserRepository;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,6 +45,12 @@ class InterestServiceTest {
   private KeywordRepository keywordRepository;
 
   @Mock
+  private UserRepository userRepository;
+
+  @Mock
+  private SubscriptionRepository subscriptionRepository;
+
+  @Mock
   private InterestMapper interestMapper;
 
   @InjectMocks
@@ -42,6 +58,7 @@ class InterestServiceTest {
 
   private InterestRegisterRequest request;
   private InterestDto expectedDto;
+  private User mockUser;
 
   @BeforeEach
   void setUp() {
@@ -50,6 +67,11 @@ class InterestServiceTest {
         "프로그래밍",
         Arrays.asList("자바", "스프링", "개발")
     );
+
+    mockUser = User.builder()
+        .id(UUID.randomUUID())
+        .email("test@test.com")
+        .build();
 
     // Given - 예상 응답 데이터 준비
     expectedDto = new InterestDto(
@@ -65,7 +87,7 @@ class InterestServiceTest {
   @DisplayName("관심사 등록 요청시 정상적으로 응답 DTO를 반환한다")
   void registerInterest_Success() {
     // Given
-    given(interestRepository.findAllByDeletedAtFalse()).willReturn(List.of());
+    given(interestRepository.findAllByIsDeletedFalse()).willReturn(List.of());
 
     Interest mockInterest = Interest.builder().build();
     given(interestRepository.save(any(Interest.class))).willReturn(mockInterest);
@@ -83,5 +105,110 @@ class InterestServiceTest {
     assertThat(result)
         .isNotNull()
         .isEqualTo(expectedDto);
+  }
+
+  @Test
+  @DisplayName("기본 조건으로 관심사 목록을 조회하면 기대한 DTO를 반환한다")
+  void searchInterests_ReturnsExpectedDto_DefaultCondition() {
+    // Given
+    String keyword = null;
+    String orderBy = "createdAt";
+    String direction = "DESC";
+    String cursor = "3";
+    LocalDateTime after = null;
+    int limit = 2;
+    UUID requestUserId = UUID.randomUUID();
+
+    given(userRepository.findById(requestUserId)).willReturn(Optional.of(mockUser));
+
+    Interest mockInterest = createMockInterest();
+    List<Interest> mockInterests = new ArrayList<>(Arrays.asList(mockInterest, mockInterest, mockInterest));
+
+    given(interestRepository.findInterestsWithCursor(keyword, orderBy, direction, cursor, after, limit))
+        .willReturn(mockInterests);
+
+    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(any()))
+        .willReturn(List.of());
+
+    given(subscriptionRepository.existsByUserAndInterest(mockUser, mockInterest)).willReturn(false);
+
+
+    InterestDto expectedDto = createMockDto(); // 간단한 mock
+    given(interestMapper.toDto(any(), anyList(), eq(false)))
+        .willReturn(expectedDto);
+
+    given(interestRepository.count()).willReturn(3L);
+
+    // When
+    CursorPageResponseInterestDto result = interestService.searchInterests(
+        keyword, orderBy, direction, cursor, after, limit, requestUserId
+    );
+
+    // Then
+    assertThat(result).isNotNull();
+    assertThat(result.content()).containsOnly(expectedDto);
+  }
+
+  @Test
+  @DisplayName("관심사 키워드 수정 요청시 정상적으로 수정된 DTO를 반환한다")
+  void updateInterest_Success() {
+    // Given
+    UUID interestId = UUID.randomUUID();
+    InterestUpdateRequest updateRequest = new InterestUpdateRequest(
+        Arrays.asList("수정된키워드1", "수정된키워드2", "수정된키워드3")
+    );
+
+    // 예상 응답 DTO
+    InterestDto expectedDto = new InterestDto(
+        interestId,
+        "기존 관심사",
+        Arrays.asList("수정된키워드1", "수정된키워드2", "수정된키워드3"),
+        5L,
+        null
+    );
+
+    // Mock Interest
+    Interest mockInterest = Interest.builder()
+        .id(interestId)
+        .name("기존 관심사")
+        .subscriberCount(5)
+        .isDeleted(false)
+        .build();
+
+    // Mock 설정
+    given(interestRepository.findById(interestId)).willReturn(Optional.of(mockInterest));
+    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interestId))
+        .willReturn(Arrays.asList());
+    given(keywordRepository.saveAll(anyList())).willReturn(Arrays.asList());
+    given(interestMapper.toDto(any(Interest.class), anyList(), isNull()))
+        .willReturn(expectedDto);
+
+    // When
+    InterestDto result = interestService.updateInterest(interestId, updateRequest);
+
+    // Then
+    assertThat(result)
+        .isNotNull()
+        .isEqualTo(expectedDto);
+  }
+
+  private InterestDto createMockDto() {
+    return new InterestDto(
+        UUID.randomUUID(),
+        "mock",
+        List.of("키워드1", "키워드2"),
+        100L,
+        false
+    );
+  }
+
+  private Interest createMockInterest() {
+    return Interest.builder()
+        .id(UUID.randomUUID())
+        .name("mock-interest")
+        .subscriberCount(100)
+        .createdAt(LocalDateTime.now())
+        .isDeleted(false)
+        .build();
   }
 }

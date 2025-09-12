@@ -160,7 +160,7 @@ class NaverNewsCollectorTest {
     Interest interest = Interest.builder()
         .name("스포츠")
         .subscriberCount(Integer.valueOf(1))
-        .deletedAt(false)
+        .isDeleted(false)
         .build();
 
     when(keywordRepository.findByInterest(interest))

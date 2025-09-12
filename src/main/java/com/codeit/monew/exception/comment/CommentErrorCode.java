@@ -8,9 +8,8 @@ import org.springframework.http.HttpStatus;
 @Getter
 public enum CommentErrorCode implements ErrorCode {
 
-  USER_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "유저를 찾을 수 없습니다."),
-  ARTICLE_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "기사를 찾을 수 없습니다."),
-  COMMENT_NOT_FOUND(HttpStatus.BAD_REQUEST.value(), "댓글을 찾을 수 없습니다.");
+  COMMENT_NOT_FOUND_EXCEPTION(HttpStatus.NOT_FOUND.value(), "댓글을 찾을 수 없습니다."),
+  IDENTITY_VERIFICATION_EXCEPTION(HttpStatus.BAD_REQUEST.value(), "댓글을 등록한 사용자가 아닙니다."),;
 
   private final int status;
   private final String message;

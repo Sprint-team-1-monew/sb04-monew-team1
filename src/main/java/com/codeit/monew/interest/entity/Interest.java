@@ -6,7 +6,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -25,6 +24,17 @@ public class Interest extends BaseUpdatableEntity {
   @Column(name = "subscriber_count", nullable = false)
   private Integer subscriberCount;
 
-  @Column(name = "deleted_at")
-  private Boolean deletedAt;
+  @Column(name = "is_deleted")
+  private Boolean isDeleted;
+
+  public void increaseSubscriber() {
+    this.subscriberCount += 1;
+  }
+
+  public void decreaseSubscriber() {
+    if (this.subscriberCount == 0) {
+      throw new IllegalStateException("구독자 수는 0보다 작아질 수 없습니다.");
+    }
+    this.subscriberCount -= 1;
+  }
 }

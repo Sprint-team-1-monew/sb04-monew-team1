@@ -1,28 +1,39 @@
-package com.codeit.monew.comment;
+package com.codeit.monew.comment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
+import com.codeit.monew.comment.entity.CommentOrderBy;
+import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
+import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
+import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.comment.repository.CommentRepositoryCustom;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
-import com.codeit.monew.comment.service.CommentService;
+import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -36,8 +47,23 @@ public class CommentServiceTest {
   @Mock
   private CommentMapper commentMapper;
 
+  @Mock
+  private CommentLikeRepository commentLikeRepository;
+
+  @Mock
+  private CommentLikeQuerydslRepository commentLikeQuerydslRepository;
+
+  @Mock
+  private CommentRepositoryCustom commentRepositoryCustom;
+
   @InjectMocks
   private CommentService commentService;
+
+  @Mock
+  private UserRepository userRepository;  // Mock 객체\
+
+  @Mock
+  private ArticleRepository articleRepository;
 
   private UUID userId;
   private UUID articleId;
@@ -61,7 +87,7 @@ public class CommentServiceTest {
     //given
     Comment mappedEntity = Comment.builder()
         .content(commentRegisterRequest.content())
-        .deleted(false)
+        .isDeleted(false)
         .likeCount(0)
         .user(User.builder().build())
         .article(Article.builder().build())
@@ -80,6 +106,8 @@ public class CommentServiceTest {
         LocalDateTime.now()
     );
 
+    given(userRepository.existsById(any())).willReturn(true);
+    given(articleRepository.existsById(any())).willReturn(true);
     given(commentMapper.toCommentEntity(commentRegisterRequest)).willReturn(mappedEntity);
     given(commentRepository.save(mappedEntity)).willReturn(savedEntity);
     given(commentMapper.toCommentDto(savedEntity)).willReturn(expectedDto);
@@ -109,14 +137,15 @@ public class CommentServiceTest {
 
     Comment mappedEntity = Comment.builder()
         .content(commentRegisterRequest.content())
-        .deleted(false)
+        .isDeleted(false)
         .likeCount(0)
         .user(dummyUser)
         .article(dummyArticle)
         .build();
 
     given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
-    given(commentRepository.save(any(Comment.class))).willAnswer(invocation -> invocation.getArgument(0));
+    given(commentRepository.save(any(Comment.class))).willAnswer(
+        invocation -> invocation.getArgument(0));
     given(commentMapper.toCommentDto(any(Comment.class)))
         .willReturn(new CommentDto(
             commentId,
@@ -140,4 +169,103 @@ public class CommentServiceTest {
 
   }
 
+  @Test
+  @DisplayName("댓글 논리 삭제 성공")
+  void softDelete_Success() {
+
+    //given
+    Comment mappedEntity = Comment.builder()
+        .content(commentRegisterRequest.content())
+        .isDeleted(false)
+        .likeCount(0)
+        .user(User.builder().build())
+        .article(Article.builder().build())
+        .build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
+
+    //when
+    commentService.softDeleteComment(commentId);
+
+    //then
+    ArgumentCaptor<Comment> captor = ArgumentCaptor.forClass(Comment.class);
+    verify(commentRepository, times(1)).save(captor.capture());
+
+    Comment savedComment = captor.getValue();
+    assertThat(savedComment.getIsDeleted()).isTrue();
+  }
+
+  @Test
+  @DisplayName("댓글 물리 삭제 성공")
+  void hardDelete_Success() {
+
+    //given
+    Comment mappedEntity = Comment.builder()
+        .content(commentRegisterRequest.content())
+        .isDeleted(false)
+        .likeCount(0)
+        .user(User.builder().build())
+        .article(Article.builder().build())
+        .build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
+
+    //when
+    commentService.hardDeleteComment(commentId);
+
+    //then
+    verify(commentLikeQuerydslRepository, times(1)).deleteByCommentId(commentId);
+    verify(commentRepository, times(1)).delete(mappedEntity);
+
+  }
+
+  @Test
+  @DisplayName("댓글 목록 조회 성공")
+  void getComments_Success() {
+
+    //given
+    UUID articleId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    //더미 User, Article 생성
+    User dummyUser = User.builder()
+        .id(UUID.randomUUID())
+        .nickname("tester")
+        .build();
+
+    Article dummyArticle = Article.builder()
+        .id(articleId)
+        .articleTitle("테스트 기사")
+        .build();
+
+    Comment mappedEntity = Comment.builder()
+        .id(UUID.randomUUID())
+        .content("테스트 댓글")
+        .createdAt(LocalDateTime.now())
+        .user(dummyUser)
+        .article(dummyArticle)
+        .build();
+
+    given(commentRepositoryCustom.findComments(eq(articleId), eq(CommentOrderBy.CREATED_AT), eq(
+        SortDirection.DESC), any(String.class), any(LocalDateTime.class), eq(10))).willReturn(
+        List.of(mappedEntity));
+
+    //when
+    CursorPageResponseCommentDto result = commentService.getComments(articleId,
+        CommentOrderBy.CREATED_AT,
+        SortDirection.DESC,
+        "cursor-value",
+        LocalDateTime.now(),
+        10,
+        requestUserId
+    );
+
+    //then
+    assertThat(result).isNotNull();
+    assertThat(result.content()).hasSize(1);
+    assertThat(result.content().get(0).getContent()).isEqualTo("테스트 댓글");
+    assertThat(result.content().get(0).getArticleId()).isEqualTo(articleId);
+    assertThat(result.hasNext()).isFalse();
+
+  }
 }
