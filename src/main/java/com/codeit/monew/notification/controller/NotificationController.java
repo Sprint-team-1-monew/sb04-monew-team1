@@ -29,7 +29,7 @@ public class NotificationController {
       @RequestHeader("Monew-Request-User-ID") UUID userId
       ) {
     CursorPageResponseNotificationDto response =
-        notificationService.getUnconfirmedNotifications(userId, cursor, after, limit);
+        notificationService.getUnconfirmedNotifications(userId, after, limit);
     return ResponseEntity.ok(response);
   }
 

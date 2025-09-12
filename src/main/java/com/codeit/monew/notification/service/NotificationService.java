@@ -166,43 +166,47 @@ public class NotificationService {
     return 0;
   }
 
-  public CursorPageResponseNotificationDto getUnconfirmedNotifications(UUID userId,
-      String cursor,
+  public CursorPageResponseNotificationDto getUnconfirmedNotifications(
+      UUID userId,
       LocalDateTime after,
-      int limit) {
-
-    UUID cursorId = cursor != null ? UUID.fromString(cursor) : null;
-
+      int limit
+  ) {
+    // limit+1 로 조회해서 hasNext 판별 가능하게 함
     List<Notification> notifications = notificationRepository.findUnconfirmedNotifications(
         userId,
         after,
-        cursorId,
-        PageRequest.of(0, limit)
+        PageRequest.of(0, limit + 1)
     );
+
+    boolean hasNext = notifications.size() > limit;
+
+    // 초과분 잘라내기
+    if (hasNext) {
+      notifications = notifications.subList(0, limit);
+    }
 
     List<NotificationDto> content = notifications.stream()
         .map(notificationMapper::toDto)
         .toList();
 
-    String nextCursor = null;
     LocalDateTime nextAfter = null;
     if (!notifications.isEmpty()) {
       Notification last = notifications.get(notifications.size() - 1);
-      nextCursor = last.getId().toString();
-      nextAfter = last.getUpdatedAt();
+      nextAfter = last.getCreatedAt(); // createdAt 기준으로만 커서 유지
     }
 
     Long totalElements = notificationRepository.countByUserIdAndConfirmedFalse(userId);
 
-    boolean hasNext = notifications.size() > limit;
+    String nextAfterStr = (nextAfter != null) ? nextAfter.toString() : null;
 
     return new CursorPageResponseNotificationDto(
         content,
-        nextCursor,
-        nextAfter,
-        notifications.size(),
+        nextAfterStr,              // cursor는 제거했으므로 null
+        nextAfter,         // createdAt 기반 after만 유지
+        content.size(),
         totalElements,
         hasNext
     );
   }
+
 }
