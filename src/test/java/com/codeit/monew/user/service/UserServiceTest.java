@@ -116,15 +116,15 @@ public class UserServiceTest {
   @DisplayName("사용자 논리삭제에 성공한다")
   void userSoftDelete_Success() {
     //given
-    User updatedUser = User.builder()
+    User softDeletedUser = User.builder()
         .email("email@email.com")
-        .nickname("updated")
+        .nickname("test")
         .password(BCrypt.withDefaults().hashToString(12, "password".toCharArray()))
-        .userStatus(UserStatus.ACTIVE)
+        .userStatus(UserStatus.DELETED)
         .build();
 
     given(userRepository.findById(any(UUID.class))).willReturn(Optional.of(user));
-    given(userRepository.save(any(User.class))).willReturn(updatedUser);
+    given(userRepository.save(any(User.class))).willReturn(softDeletedUser);
 
     //when
     userService.softDelete(userId);
