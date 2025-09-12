@@ -44,6 +44,7 @@ jobs:
 # 커버리지 수치를 jacoco XML에서 뽑은 다음 PR 코멘트로 남기기
       - name: Install xmllint (parsing XML) # xmllint 설치하기
         run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+        # 업데이트를 꼭 해야하는가?
 
 # 커버리지 코멘트 설계
       - name: Extract coverage numbers
