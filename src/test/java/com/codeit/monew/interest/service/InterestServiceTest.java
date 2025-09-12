@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
@@ -13,6 +14,7 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
@@ -175,7 +177,7 @@ class InterestServiceTest {
 
     // Mock 설정
     given(interestRepository.findById(interestId)).willReturn(Optional.of(mockInterest));
-    given(keywordRepository.findAllByInterest_IdAndDeletedAtFalse(interestId))
+    given(keywordRepository.findAllByInterest_IdAndIsDeletedFalse(interestId))
         .willReturn(Arrays.asList());
     given(keywordRepository.saveAll(anyList())).willReturn(Arrays.asList());
     given(interestMapper.toDto(any(Interest.class), anyList(), isNull()))

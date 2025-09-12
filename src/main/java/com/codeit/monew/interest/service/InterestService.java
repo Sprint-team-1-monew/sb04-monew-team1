@@ -1,7 +1,9 @@
 package com.codeit.monew.interest.service;
 
 import static com.codeit.monew.exception.interest.InterestErrorCode.INTEREST_NAME_DUPLICATION;
+import static com.codeit.monew.exception.interest.InterestErrorCode.INTEREST_NOT_FOUND;
 
+import com.codeit.monew.exception.interest.InterestErrorCode;
 import com.codeit.monew.exception.interest.InterestException;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.entity.Keyword;
@@ -9,6 +11,7 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
+import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
@@ -57,7 +60,7 @@ public class InterestService {
         .map(keywordStr -> Keyword.builder()
             .keyword(keywordStr)
             .interest(savedInterest)
-            .deletedAt(false)
+            .isDeleted(false)
             .build())
             .collect(Collectors.toList());
 
@@ -117,16 +120,16 @@ public class InterestService {
         .orElseThrow(() -> new InterestException(INTEREST_NOT_FOUND,
             Map.of("interestId", interestId.toString())));
 
-    List<Keyword> existingKeywords = keywordRepository.findAllByInterest_IdAndDeletedAtFalse(
+    List<Keyword> existingKeywords = keywordRepository.findAllByInterest_IdAndIsDeletedFalse(
         interestId);
-    existingKeywords.forEach(keyword -> keyword.setDeletedAt(true));
+    existingKeywords.forEach(Keyword::softDelete);
     keywordRepository.saveAll(existingKeywords);
 
     List<Keyword> newKeywords = request.keywords().stream()
         .map(keywordStr -> Keyword.builder()
             .keyword(keywordStr)
             .interest(interest)
-            .deletedAt(false)
+            .isDeleted(false)
             .build())
         .collect(Collectors.toList());
 
