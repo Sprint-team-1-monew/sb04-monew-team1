@@ -5,7 +5,6 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 
 import com.codeit.monew.interest.entity.Interest;
@@ -14,7 +13,6 @@ import com.codeit.monew.interest.mapper.InterestMapper;
 import com.codeit.monew.interest.repository.InterestRepository;
 import com.codeit.monew.interest.repository.KeywordRepository;
 import com.codeit.monew.interest.request.InterestRegisterRequest;
-import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
@@ -190,6 +188,31 @@ class InterestServiceTest {
     assertThat(result)
         .isNotNull()
         .isEqualTo(expectedDto);
+  }
+
+  @Test
+  @DisplayName("관심사 소프트 삭제 성공")
+  void softDeleteInterest_Success() {
+    // Given
+    UUID interestId = UUID.randomUUID();
+    Interest mockInterest = createMockInterest();
+
+    List<Keyword> mockKeywords = Arrays.asList(
+        Keyword.builder().keyword("키워드1").interest(mockInterest).isDeleted(false).build(),
+        Keyword.builder().keyword("키워드2").interest(mockInterest).isDeleted(false).build()
+    );
+
+    given(interestRepository.findByIdAndIsDeletedFalse(interestId))
+        .willReturn(Optional.of(mockInterest));
+    given(keywordRepository.findByInterestAndIsDeletedFalse(mockInterest))
+        .willReturn(mockKeywords);
+
+    // When
+    interestService.softDeleteInterest(interestId);
+
+    // Then - 예외가 발생하지 않으면 성공
+    assertThat(mockInterest.getIsDeleted()).isTrue();
+    assertThat(mockKeywords).allMatch(Keyword::getIsDeleted);
   }
 
   private InterestDto createMockDto() {
