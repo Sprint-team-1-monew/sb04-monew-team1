@@ -26,7 +26,7 @@ public class Article extends BaseEntity {
   @Column(name = "source", nullable = false)
   private String source;
 
-  @Column(name = "source_url", nullable = false)
+  @Column(name = "source_url", length = 1024 ,nullable = false)
   private String sourceUrl;
 
   @Column(name = "article_title", nullable = false)

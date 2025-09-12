@@ -39,7 +39,7 @@ public class HankyungCollector {
 
   @Transactional
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
-  @Scheduled(cron = "2 * * * * *", zone = "Asia/Seoul")// 매 분 마다
+  @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 분 마다
   public void hankyungArticleFetchAndSaveHourly() throws Exception {
     log.info("한국경제 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     List<Interest> interests = interestRepository.findAll();
