@@ -3,7 +3,6 @@ package com.codeit.monew.notification.batch;
 import com.codeit.monew.notification.service.NotificationService;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Counter;
-import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.batch.core.ExitStatus;
@@ -23,11 +22,10 @@ public class NotificationCleanupTasklet implements Tasklet {
 
   @Override
   public RepeatStatus execute(StepContribution contribution, ChunkContext chunkContext) {
-    // 삭제된 알림 수 조회
+
     int deletedCount = notificationService.deleteOldConfirmNotifications();
     log.info("삭제된 알림 개수: {}", deletedCount);
 
-    // Tasklet 안에서 Counter 생성 후 increment
     Counter counter = meterRegistry.counter("notification.cleanup.deleted.count");
     counter.increment(deletedCount);
 
