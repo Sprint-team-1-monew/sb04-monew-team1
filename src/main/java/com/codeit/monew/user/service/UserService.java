@@ -2,6 +2,7 @@ package com.codeit.monew.user.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.entity.UserStatus;
 import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.mapper.UserMapper;
@@ -10,6 +11,7 @@ import com.codeit.monew.user.request.UserLoginRequest;
 import com.codeit.monew.user.request.UserRegisterRequest;
 import com.codeit.monew.user.request.UserUpdateRequest;
 import com.codeit.monew.user.response_dto.UserDto;
+import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -66,6 +68,24 @@ public class UserService {
 
   private boolean matches(String plainPassword, String hashedPassword) {
     return BCrypt.verifyer().verify(plainPassword.toCharArray(), hashedPassword).verified;
+  }
+
+  public void softDelete(UUID userId) {
+    User softDeletedUser = userRepository.findById(userId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+
+    if(isUserStatusDeleted(softDeletedUser.getUserStatus())) {  // 이미 논리 삭제 된 경우 논리 삭제 시간 갱신 방지
+      return;
+    }
+
+    softDeletedUser.updateUserStatus(UserStatus.DELETED);
+    softDeletedUser.updateDeletedAt(LocalDateTime.now());
+
+    userRepository.save(softDeletedUser);
+  }
+
+  private boolean isUserStatusDeleted(UserStatus userStatus) {
+    return userStatus.equals(UserStatus.DELETED);
   }
 
 }
