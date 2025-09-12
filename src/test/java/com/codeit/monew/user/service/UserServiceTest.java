@@ -6,6 +6,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.entity.UserStatus;
 import com.codeit.monew.user.mapper.UserMapper;
@@ -97,7 +98,8 @@ public class UserServiceTest {
   void login_Success() {
     //given
     UserLoginRequest userLoginRequest = new UserLoginRequest("email@email.com", "password");
-    UserDto userDto = new UserDto(userId.toString(), "email@email.com", "nickname", LocalDateTime.now());
+    UserDto userDto = new UserDto(userId.toString(), "email@email.com", "nickname",
+        LocalDateTime.now());
     given(userRepository.findByEmail(any(String.class))).willReturn(Optional.of(user));
     given(userMapper.toDto(user)).willReturn(userDto);
 
@@ -108,6 +110,28 @@ public class UserServiceTest {
     assertThat(userResponse).isEqualTo(userDto);
     then(userRepository).should(times(1)).findByEmail(any(String.class));
     then(userMapper).should(times(1)).toDto(any(User.class));
+  }
+
+  @Test
+  @DisplayName("사용자 논리삭제에 성공한다")
+  void userSoftDelete_Success() {
+    //given
+    User updatedUser = User.builder()
+        .email("email@email.com")
+        .nickname("updated")
+        .password(BCrypt.withDefaults().hashToString(12, "password".toCharArray()))
+        .userStatus(UserStatus.ACTIVE)
+        .build();
+
+    given(userRepository.findById(any(UUID.class))).willReturn(Optional.of(user));
+    given(userRepository.save(any(User.class))).willReturn(updatedUser);
+
+    //when
+    userService.softDelete(userId);
+
+    //then
+    then(userRepository).should(times(1)).findById(any(UUID.class));
+    then(userRepository).should(times(1)).save(any(User.class));
 
   }
 
