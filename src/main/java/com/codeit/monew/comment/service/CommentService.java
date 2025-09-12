@@ -2,20 +2,24 @@ package com.codeit.monew.comment.service;
 
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
+import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
 import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
 import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
+import com.codeit.monew.comment.repository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.repository.CommentRepositoryCustom;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
+import com.codeit.monew.comment.response_dto.CommentLikeDto;
 import com.codeit.monew.comment.response_dto.CommentListResponse;
 import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.exception.comment.CommentErrorCode;
 import com.codeit.monew.exception.comment.CommentException;
+import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
@@ -37,6 +41,7 @@ public class CommentService {
   private final CommentMapper commentMapper;
   private final CommentRepository commentRepository;
   private final CommentLikeQuerydslRepository commentLikeQuerydslRepository;
+  private final CommentLikeRepository commentLikeRepository;
   private final CommentRepositoryCustom commentRepositoryCustom;
 
   private final UserRepository userRepository;
@@ -124,8 +129,6 @@ public class CommentService {
         "목록 조회 시작 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
         articleId, orderBy, direction, cursor, after, limit, requestUserId);
 
-    commentRepositoryCustom.findComments(articleId, orderBy, direction, cursor, after, limit);
-
     List<Comment> comments = commentRepositoryCustom.findComments(articleId, orderBy, direction,
         cursor, after, limit);
 
@@ -136,7 +139,7 @@ public class CommentService {
 
     //커서 값 계산
     String nextCursor = comments.isEmpty() ? null :
-        comments.get(comments.size() -1 ).getId().toString();
+        comments.get(comments.size() - 1).getId().toString();
 
     boolean hasNext = comments.size() == limit; // Limit 만큼 채워졌으면 다음 페이지가 있다고 가정
 
@@ -148,4 +151,64 @@ public class CommentService {
 
   }
 
+  public CommentLikeDto commentLike(UUID commentId, UUID requestUserId) {
+
+    Comment comment = commentRepository.findById(commentId)
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
+            Map.of("commentId", commentId)));
+
+    User user = userRepository.findById(requestUserId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
+            Map.of("requestUserId", requestUserId)));
+
+    if (commentLikeRepository.existsByCommentIdAndUserId(commentId, requestUserId)) {
+      throw new CommentException(CommentErrorCode.DUPLICATE_LIKES,
+          Map.of("commentId", commentId, "requestUserId", requestUserId));
+    }
+
+    CommentLike commentLike = CommentLike
+        .builder()
+        .comment(comment)
+        .user(user)
+        .build();
+
+    commentLikeRepository.save(commentLike);
+
+    // 좋아요 카운트 증가
+    comment.setLikeCount(comment.getLikeCount() + 1);
+    commentRepository.save(comment);
+
+    return new CommentLikeDto(
+        commentLike.getId(),
+        user.getId(),
+        commentLike.getCreatedAt(),
+        comment.getId(),
+        comment.getArticle().getId(),
+        comment.getUser().getId(),
+        comment.getUser().getNickname(),
+        comment.getContent(),
+        comment.getLikeCount(),
+        comment.getCreatedAt()
+    );
+  }
+
+  public void deleteCommentLike(UUID commentId, UUID requestUserId) {
+
+    Comment comment = commentRepository.findById(commentId)
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
+            Map.of("commentId", commentId)));
+
+    User user = userRepository.findById(requestUserId)
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
+            Map.of("requestUserId", requestUserId)));
+
+    CommentLike commentLike = commentLikeRepository.findByCommentAndUser(comment, user)
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_LIKE,
+            Map.of("commentId", commentId)));
+
+    commentLikeRepository.delete(commentLike);
+
+    comment.setLikeCount(comment.getLikeCount() - 1);
+    commentRepository.save(comment);
+  }
 }

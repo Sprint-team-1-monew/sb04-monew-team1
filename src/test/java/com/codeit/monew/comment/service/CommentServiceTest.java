@@ -12,6 +12,7 @@ import static org.mockito.Mockito.verify;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
+import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
 import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
@@ -266,6 +267,83 @@ public class CommentServiceTest {
     assertThat(result.content().get(0).getContent()).isEqualTo("테스트 댓글");
     assertThat(result.content().get(0).getArticleId()).isEqualTo(articleId);
     assertThat(result.hasNext()).isFalse();
+
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 성공")
+  void CommentLike_Success() {
+
+    Article article = Article.builder()
+        .id(UUID.randomUUID())
+        .articleTitle("테스트 글")
+        .build();
+
+    User user = User.builder()
+        .id(userId)
+        .nickname("테스트유저")
+        .build();
+
+    Comment comment = Comment.builder()
+        .id(commentId)
+        .content("테스트 댓글")
+        .article(article)
+        .user(user)
+        .likeCount(0)
+        .build();
+
+    //given
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+
+    //when
+    commentService.commentLike(commentId, userId);
+
+    //then
+    assertThat(comment.getLikeCount()).isEqualTo(1);
+    then(commentLikeRepository).should(times(1)).save(any(CommentLike.class));
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 취소 성공")
+  void CommentLike_cancel() {
+
+    Article article = Article.builder()
+        .id(UUID.randomUUID())
+        .articleTitle("테스트 글")
+        .build();
+
+    User user = User.builder()
+        .id(userId)
+        .nickname("테스트유저")
+        .build();
+
+    Comment comment = Comment.builder()
+        .id(commentId)
+        .content("테스트 댓글")
+        .article(article)
+        .user(user)
+        .likeCount(0)
+        .build();
+
+    // given
+    CommentLike commentLike = CommentLike.builder()
+        .comment(comment)
+        .user(user)
+        .build();
+    comment.setLikeCount(1);
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(userId)).willReturn(Optional.of(user));
+    given(commentLikeRepository.findByCommentAndUser(comment, user))
+        .willReturn(Optional.of(commentLike));
+
+    // when
+    commentService.deleteCommentLike(commentId, userId);
+
+    // then
+    assertThat(comment.getLikeCount()).isEqualTo(0);
+    then(commentLikeRepository).should(times(1)).delete(commentLike);
 
   }
 }

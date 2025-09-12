@@ -36,6 +36,7 @@ public class Comment extends BaseEntity {
 
   @Builder.Default
   @Column(name = "like_count", nullable = false)
+  @Setter
   private int likeCount = 0;
 
   @Column(name = "updated_at")
