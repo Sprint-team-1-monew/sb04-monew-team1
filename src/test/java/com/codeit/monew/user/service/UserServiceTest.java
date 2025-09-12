@@ -2,6 +2,7 @@ package com.codeit.monew.user.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
@@ -132,6 +133,29 @@ public class UserServiceTest {
     //then
     then(userRepository).should(times(1)).findById(any(UUID.class));
     then(userRepository).should(times(1)).save(any(User.class));
+
+  }
+
+  @Test
+  @DisplayName("사용자 물리 삭제에 성공한다")
+  void deleteHardDelete_Success() {
+    //given
+    User softDeletedUser = User.builder()
+        .email("email@email.com")
+        .nickname("test")
+        .password(BCrypt.withDefaults().hashToString(12, "password".toCharArray()))
+        .userStatus(UserStatus.DELETED)
+        .deletedAt(LocalDateTime.now().minusMinutes(5))
+        .build();
+
+    given(userRepository.findById(any(UUID.class))).willReturn(Optional.of(softDeletedUser));
+
+    //when
+    userService.hardDelete(userId);
+
+    //then
+    then(userRepository).should(times(1)).findById(any(UUID.class));
+    then(userRepository).should(times(1)).delete(eq(softDeletedUser));
 
   }
 

@@ -45,4 +45,11 @@ public class UserController {
     userService.softDelete(userId);
     return ResponseEntity.noContent().build();
   }
+
+  // 클라이언트에 노출x
+  @DeleteMapping("/{userId}/hard")
+  public ResponseEntity<Void> shardDeleteUser(@PathVariable UUID userId) {
+    userService.hardDelete(userId);
+    return ResponseEntity.noContent().build();
+  }
 }
