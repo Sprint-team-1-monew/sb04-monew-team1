@@ -2,7 +2,6 @@ package com.codeit.monew.notification.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.anyList;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.never;
@@ -20,6 +19,7 @@ import com.codeit.monew.notification.entity.ResourceType;
 import com.codeit.monew.notification.mapper.NotificationMapper;
 import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
+import com.codeit.monew.notification.response_dto.NotificationDto;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -309,7 +309,6 @@ public class NotificationServiceTest {
     UUID userId = UUID.randomUUID();
     UUID notificationId1 = UUID.randomUUID();
     UUID notificationId2 = UUID.randomUUID();
-
     LocalDateTime now = LocalDateTime.now();
 
     Notification n1 = Notification.builder()
@@ -320,7 +319,6 @@ public class NotificationServiceTest {
         .resourceType(ResourceType.INTEREST)
         .resourceId(UUID.randomUUID())
         .createdAt(now.minusMinutes(10))
-        .updatedAt(now.minusMinutes(10))
         .build();
 
     Notification n2 = Notification.builder()
@@ -331,32 +329,33 @@ public class NotificationServiceTest {
         .resourceType(ResourceType.COMMENT)
         .resourceId(UUID.randomUUID())
         .createdAt(now.minusMinutes(5))
-        .updatedAt(now.minusMinutes(5))
         .build();
 
     List<Notification> notifications = List.of(n1, n2);
 
-    // cursor와 after는 처음 조회라 null
-    given(notificationRepository.findUnconfirmedNotifications(
-        eq(userId), eq(null), eq(null), any(PageRequest.class))
-    ).willReturn(notifications);
-
-    given(notificationRepository.countByUserIdAndConfirmedFalse(userId)).willReturn(2L);
+    given(notificationRepository.findUnconfirmedNotifications(userId, null, PageRequest.of(0, 11)))
+        .willReturn(notifications);
+    given(notificationRepository.countByUserIdAndConfirmedFalse(userId))
+        .willReturn(2L);
+    given(notificationMapper.toDto(n1)).willReturn(new NotificationDto(
+        n1.getId(), n1.getCreatedAt(), n1.getUpdatedAt(), n1.isConfirmed(), n1.getUser().getId(),
+        n1.getContent(), n1.getResourceType(), n1.getResourceId()
+    ));
+    given(notificationMapper.toDto(n2)).willReturn(new NotificationDto(
+        n2.getId(), n2.getCreatedAt(), n2.getUpdatedAt(), n2.isConfirmed(), n2.getUser().getId(),
+        n2.getContent(), n2.getResourceType(), n2.getResourceId()
+    ));
 
     // when
     CursorPageResponseNotificationDto result = notificationService.getUnconfirmedNotifications(
-        userId,
-        null,  // cursor
-        null,  // after
-        10     // limit
+        userId, null, 10
     );
 
     // then
     assertThat(result).isNotNull();
     assertThat(result.content()).hasSize(2);
-    assertThat(result.nextCursor()).isEqualTo(notificationId2.toString());
-    assertThat(result.nextAfter()).isEqualTo(n2.getCreatedAt());
+    assertThat(result.nextCursor()).isEqualTo(n2.getCreatedAt().toString()); // String cursor
     assertThat(result.totalElements()).isEqualTo(2);
-    assertThat(result.hasNext()).isFalse(); // notifications.size() < limit
+    assertThat(result.hasNext()).isFalse();
   }
 }
