@@ -6,11 +6,11 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.times;
 
-import at.favre.lib.crypto.bcrypt.BCrypt;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.entity.UserStatus;
 import com.codeit.monew.user.mapper.UserMapper;
 import com.codeit.monew.user.repository.UserRepository;
+import com.codeit.monew.user.request.UserLoginRequest;
 import com.codeit.monew.user.request.UserRegisterRequest;
 import com.codeit.monew.user.request.UserUpdateRequest;
 import com.codeit.monew.user.response_dto.UserDto;
@@ -92,12 +92,30 @@ public class UserServiceTest {
 
   }
 
+  @Test
+  @DisplayName("사용자 로그인에 성공한다")
+  void login_Success() {
+    //given
+    UserLoginRequest userLoginRequest = new UserLoginRequest("email@email.com", "password");
+    UserDto userDto = new UserDto(userId.toString(), "email@email.com", "nickname", LocalDateTime.now());
+    given(userRepository.findByEmail(any(String.class))).willReturn(Optional.of(user));
+    given(userMapper.toDto(user)).willReturn(userDto);
+
+    //when
+    UserDto userResponse = userService.login(userLoginRequest);
+
+    //then
+    assertThat(userResponse).isEqualTo(userDto);
+    then(userRepository).should(times(1)).findByEmail(any(String.class));
+    then(userMapper).should(times(1)).toDto(any(User.class));
+
+  }
+
   private static User createUser() {
-    String password = "password";
     return User.builder()
         .email("email@email.com")
         .nickname("nickname")
-        .password(BCrypt.withDefaults().hashToString(12, password.toCharArray()))
+        .password("password")
         .userStatus(UserStatus.ACTIVE)
         .build();
   }
