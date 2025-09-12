@@ -14,19 +14,19 @@ import org.springframework.transaction.PlatformTransactionManager;
 public class NotificationCleanupConfig extends DefaultBatchConfiguration {
 
   @Bean
+  public Job notificationCleanupJob(JobRepository jobRepository, Step cleanupStep) {
+    return new JobBuilder("notificationCleanupJob", jobRepository)
+        .start(cleanupStep)
+        .build();
+  }
+
+  @Bean
   public Step cleanupStep(JobRepository jobRepository,
       PlatformTransactionManager transactionManager,
       NotificationCleanupTasklet notificationCleanupTasklet) {
 
     return new StepBuilder("cleanupStep", jobRepository)
         .tasklet(notificationCleanupTasklet, transactionManager)
-        .build();
-  }
-
-  @Bean
-  public Job notificationCleanupJob(JobRepository jobRepository, Step cleanupStep) {
-    return new JobBuilder("notificationCleanupJob", jobRepository)
-        .start(cleanupStep)
         .build();
   }
 }
