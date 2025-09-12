@@ -38,36 +38,41 @@ public class NaverNewsCollector {
   private final KeywordRepository keywordRepository;
 
   public NaverNewsResponse searchNews(String interestName, Integer display, Integer start, String sort) {
-    log.info("네이버 API 요청 : {}", interestName);
-    return webClient.get()
-        .uri(uriBuilder -> uriBuilder
-            .path("/v1/search/news.json")
-            .queryParam("query", interestName)
-            .queryParam("display", display)
-            .queryParam("start", start)
-            .queryParam("sort", sort)
-            .build())
-        .retrieve()
-        // 429면 에러로 전달 (Retry에서 잡게)
-        .onStatus(s -> s.value() == 429, resp -> resp.createException().flatMap(Mono::error))
-        .bodyToMono(NaverNewsResponse.class)
-
-        // 429만 지수백오프로 최대 3회 재시도 (2s, 4s, 8s)
-        .retryWhen(
-            Retry.backoff(3, Duration.ofSeconds(2))
-                .filter(ex -> ex instanceof WebClientResponseException w &&
-                    w.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS)
-                .transientErrors(true)
-        )
-        .block();
+    log.info("네이버 API 요청 관심사: {}, 표시 기사: {}, 시작 기사: {}, 정렬: {}", interestName, display, start, sort);
+    try {
+      return webClient.get()
+          .uri(uriBuilder -> uriBuilder
+              .path("/v1/search/news.json")
+              .queryParam("query", interestName)
+              .queryParam("display", display)
+              .queryParam("start", start)
+              .queryParam("sort", sort)
+              .build())
+          .retrieve()
+          // 429면 에러로 전달 (Retry에서 잡게)
+          .onStatus(s -> s.value() == 429, resp -> resp.createException().flatMap(Mono::error))
+          .bodyToMono(NaverNewsResponse.class)
+          // 429만 재시도
+          .retryWhen(
+              Retry.backoff(3, Duration.ofSeconds(2))
+                  .filter(ex -> ex instanceof WebClientResponseException w &&
+                      w.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS)
+                  .transientErrors(true)
+          )
+          .block();
+    } catch (WebClientResponseException e) {
+      log.error("Naver API 오류 status={}, body={}",
+          e.getRawStatusCode(), e.getResponseBodyAsString());
+      throw e;
+    }
   }
 
   @Transactional
   //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
-  @Scheduled(cron = "3 * * * * *", zone = "Asia/Seoul")// 매 분 마다
+  @Scheduled(cron = "1 * * * * *", zone = "Asia/Seoul")// 매 분 마다
   public void fetchAndSaveHourly() throws InterruptedException {
     log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
-    int display = 100; // 2의 n 제곱 -1
+    int display = 100;
     int start = 1;
     String sort = "date";
 
@@ -78,7 +83,7 @@ public class NaverNewsCollector {
       Optional<Article> lastArticle = articleRepository.findTop1ByInterestOrderByArticlePublishDateDesc(interest);
       boolean isPrior = false;
       List<Article> sortedNaverNewsItems = new ArrayList<>();
-      while(true){
+      while(start <= 1000){
         NaverNewsResponse naverNewsResponse = searchNews(interest.getName(), display, start, sort);
         for(NaverNewsItem naverNewsItem : naverNewsResponse.items()) {
           Article newArticle = buildArticleFromNaverItem(naverNewsItem, interest);
@@ -87,7 +92,7 @@ public class NaverNewsCollector {
           }
 
           if (lastArticle.isPresent()){
-            if (newArticle.getArticlePublishDate().isAfter(lastArticle.get().getArticlePublishDate())) {
+            if (newArticle.getArticlePublishDate().isBefore(lastArticle.get().getArticlePublishDate())) {
               log.info("네이버 기사 발행일: {}, 저장된 마지막 기사 발행일: {}", newArticle.getArticlePublishDate(), lastArticle.get().getArticlePublishDate());
               isPrior = true;
               break;
@@ -98,7 +103,6 @@ public class NaverNewsCollector {
         //다음 페이지로 (네이버는 start를 display만큼 더하기)
         if (isPrior) break;
         start += display;
-        if (start > 1000) break;
       }
 
       for (int i = sortedNaverNewsItems.size() - 1; i >= 0; i--) {
@@ -153,9 +157,6 @@ public class NaverNewsCollector {
     if (articleOptional.isPresent()) {
       log.info("네이버 기사 중복 검사 발견: {}", article.getSourceUrl());
       return true;
-      /*Map<String, Object> details = new HashMap<>();
-      details.put("이유: ", "기사가 중복 됨");
-      throw new ArticleDuplicateException(details);*/
     } 
     log.info("네이버 기사 중복 검사 종료: {}", article.getSourceUrl());
     return false;
