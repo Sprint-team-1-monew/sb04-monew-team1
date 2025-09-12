@@ -171,7 +171,7 @@ public class NotificationService {
       LocalDateTime after,
       int limit
   ) {
-    // limit+1 로 조회해서 hasNext 판별 가능하게 함
+
     List<Notification> notifications = notificationRepository.findUnconfirmedNotifications(
         userId,
         after,
@@ -180,7 +180,6 @@ public class NotificationService {
 
     boolean hasNext = notifications.size() > limit;
 
-    // 초과분 잘라내기
     if (hasNext) {
       notifications = notifications.subList(0, limit);
     }
@@ -192,7 +191,7 @@ public class NotificationService {
     LocalDateTime nextAfter = null;
     if (!notifications.isEmpty()) {
       Notification last = notifications.get(notifications.size() - 1);
-      nextAfter = last.getCreatedAt(); // createdAt 기준으로만 커서 유지
+      nextAfter = last.getCreatedAt();
     }
 
     Long totalElements = notificationRepository.countByUserIdAndConfirmedFalse(userId);
@@ -201,8 +200,8 @@ public class NotificationService {
 
     return new CursorPageResponseNotificationDto(
         content,
-        nextAfterStr,              // cursor는 제거했으므로 null
-        nextAfter,         // createdAt 기반 after만 유지
+        nextAfterStr,
+        nextAfter,
         content.size(),
         totalElements,
         hasNext
