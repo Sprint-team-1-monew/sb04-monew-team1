@@ -5,11 +5,10 @@ import com.codeit.monew.user.entity.User;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.springframework.transaction.annotation.Transactional;
 
 public interface NotificationRepository extends JpaRepository<Notification, UUID> {
 
@@ -17,9 +16,19 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
 
   List<Notification> findByConfirmedTrueAndUpdatedAtBefore(LocalDateTime weekAgo);
 
-  //테스트용
-  @Modifying
-  @Transactional // update 쿼리 실행에 필요한 트랜잭션
-  @Query("update Notification n set n.updatedAt = :updatedAt where n.id = :id")
-  void updateUpdatedAt(@Param("id") UUID id, @Param("updatedAt") LocalDateTime updatedAt);
+  @Query("""
+    SELECT n FROM Notification n
+    WHERE n.user.id = :userId
+      AND n.confirmed = false
+      AND (n.createdAt > :after OR (n.createdAt = :after AND n.id > :cursor))
+    ORDER BY n.createdAt ASC, n.id ASC
+""")
+  List<Notification> findUnconfirmedNotifications(
+      @Param("userId") UUID userId,
+      @Param("after") LocalDateTime after,
+      @Param("cursor") UUID cursor,
+      Pageable pageable
+  );
+
+  Long countByUserIdAndConfirmedFalse(UUID userId);
 }

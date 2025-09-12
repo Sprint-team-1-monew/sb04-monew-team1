@@ -1,5 +1,6 @@
 package com.codeit.monew.notification.response_dto;
 
+import com.codeit.monew.notification.entity.ResourceType;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,6 +11,6 @@ public record NotificationDto (
   boolean confirmed,
   UUID userId,
   String content,
-  String resourceType,
+  ResourceType resourceType,
   UUID resourceId
 ){}

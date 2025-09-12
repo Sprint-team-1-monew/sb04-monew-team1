@@ -19,9 +19,16 @@ public class NotificationCleanupScheduler {
 
   @Scheduled(cron = "${spring.batch.notification-cleanup.cron}")
   public void runJob() throws Exception {
-    JobParameters jobParameters = new JobParametersBuilder()
-        .addLong("time", System.currentTimeMillis())
-        .toJobParameters();
-    jobLauncher.run(notificationCleanupJob, jobParameters);
+    try {
+      JobParameters jobParameters = new JobParametersBuilder()
+          .addLong("time", System.currentTimeMillis())
+          .toJobParameters();
+
+      jobLauncher.run(notificationCleanupJob, jobParameters);
+
+      log.info("알림 정리 배치 완료");
+    } catch (Exception e) {
+      log.error("알림 정리 배치 실행 실패", e);
+    }
   }
 }

@@ -72,16 +72,6 @@ public class ArticleService {
     List<ArticleDto> content = new ArrayList<>();
     Optional<User> user = userRepository.findById(requestUserId); // npe 날 수 있으니 예외 처리, 충돌을 우려하며 나중에 유저 쪽 코드랑 머지 되었을 때 예외 처리 추가
 
-    if (articles.size() > limit) {
-      articles = articles.subList(0, limit);
-    }
-
-    for (Article article : articles) {
-      boolean viewed = articleViewUserRepository.existsByArticleAndUser(article, user.get());
-      ArticleDto dto = articleMapper.toDto(article, viewed);
-      content.add(dto);
-    }
-
     String nextCursor = null;
     LocalDateTime nextAfter = null;
     switch (orderBy == null ? "" : orderBy) {
@@ -101,6 +91,16 @@ public class ArticleService {
     int size = articles.size();
     long totalElements = articleRepository.searchArticlesCount(keyword, interestId, sourceIn, publishDateFrom, publishDateTo);
     boolean hasNex = size == limit+1;
+
+    if (articles.size() > limit) {
+      articles = articles.subList(0, limit);
+    }
+
+    for (Article article : articles) {
+      boolean viewed = articleViewUserRepository.existsByArticleAndUser(article, user.get());
+      ArticleDto dto = articleMapper.toDto(article, viewed);
+      content.add(dto);
+    }
 
     log.info("뉴스 기사 검색 완료");
     return new CursorPageResponseArticleDto(content, nextCursor, nextAfter, size, totalElements, hasNex);
@@ -169,5 +169,4 @@ public class ArticleService {
     log.info("유저 존재 검증 완료 {}", userId);
     return user;
   }
-
 }
