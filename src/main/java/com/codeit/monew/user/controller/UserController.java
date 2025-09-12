@@ -1,5 +1,6 @@
 package com.codeit.monew.user.controller;
 
+import com.codeit.monew.user.request.UserLoginRequest;
 import com.codeit.monew.user.request.UserRegisterRequest;
 import com.codeit.monew.user.request.UserUpdateRequest;
 import com.codeit.monew.user.response_dto.UserDto;
@@ -31,5 +32,11 @@ public class UserController {
   @PatchMapping("/{userId}")
   public ResponseEntity<UserDto> updateUser(@PathVariable UUID userId, @Valid @RequestBody UserUpdateRequest userUpdateRequest) {
     return ResponseEntity.ok(userService.updateUser(userId, userUpdateRequest));
+  }
+
+  @PostMapping("/login")
+  public ResponseEntity<UserDto> login(@Valid @RequestBody UserLoginRequest userLoginRequest)
+  {
+    return ResponseEntity.ok(userService.login(userLoginRequest));
   }
 }
