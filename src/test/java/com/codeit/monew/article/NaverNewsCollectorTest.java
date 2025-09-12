@@ -165,9 +165,9 @@ class NaverNewsCollectorTest {
 
     when(keywordRepository.findByInterest(interest))
         .thenReturn(List.of(
-            Keyword.builder().keyword("  ").deletedAt(false).interest(interest).build(),
-            Keyword.builder().keyword(null).deletedAt(false).interest(interest).build(),
-            Keyword.builder().keyword("축구").deletedAt(false).interest(interest).build()
+            Keyword.builder().keyword("  ").isDeleted(false).interest(interest).build(),
+            Keyword.builder().keyword(null).isDeleted(false).interest(interest).build(),
+            Keyword.builder().keyword("축구").isDeleted(false).interest(interest).build()
         ));
 
     NaverNewsItem item = mock(NaverNewsItem.class);
