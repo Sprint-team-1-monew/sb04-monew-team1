@@ -20,15 +20,15 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
     SELECT n FROM Notification n
     WHERE n.user.id = :userId
       AND n.confirmed = false
-      AND (n.createdAt > :after OR (n.createdAt = :after AND n.id > :cursor))
-    ORDER BY n.createdAt ASC, n.id ASC
+      AND n.createdAt > :after
+    ORDER BY n.createdAt ASC
 """)
   List<Notification> findUnconfirmedNotifications(
       @Param("userId") UUID userId,
       @Param("after") LocalDateTime after,
-      @Param("cursor") UUID cursor,
       Pageable pageable
   );
+
 
   Long countByUserIdAndConfirmedFalse(UUID userId);
 }
