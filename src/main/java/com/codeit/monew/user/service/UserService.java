@@ -6,6 +6,7 @@ import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.mapper.UserMapper;
 import com.codeit.monew.user.repository.UserRepository;
+import com.codeit.monew.user.request.UserLoginRequest;
 import com.codeit.monew.user.request.UserRegisterRequest;
 import com.codeit.monew.user.request.UserUpdateRequest;
 import com.codeit.monew.user.response_dto.UserDto;
@@ -44,10 +45,27 @@ public class UserService {
     return userMapper.toDto(userRepository.save(user));
   }
 
+  public UserDto login(UserLoginRequest userLoginRequest) {
+    User user = userRepository.findByEmail(userLoginRequest.email())
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_LOGIN_FAILED, Map.of("email", userLoginRequest.email())));
+
+    String loginPassword = userLoginRequest.password();
+
+    if(!matches(loginPassword, user.getPassword())) {
+      throw new UserException(UserErrorCode.USER_LOGIN_FAILED, Map.of("auth", "failed"));
+    }
+
+    return userMapper.toDto(user);
+  }
+
   private void validateEmailDoesNotExist(String email) {
     if (userRepository.existsByEmail(email)) {
       throw new UserException(UserErrorCode.USER_EMAIL_DUPLICATED, Map.of("email", email));
     }
+  }
+
+  private boolean matches(String plainPassword, String hashedPassword) {
+    return BCrypt.verifyer().verify(plainPassword.toCharArray(), hashedPassword).verified;
   }
 
 }
