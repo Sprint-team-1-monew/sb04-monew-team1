@@ -108,7 +108,7 @@ public class CommentService {
     log.info("댓글 물리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
-            Map.of("commentId", commentId)));
+            Map.of( "commentId", commentId)));
 
     commentLikeQuerydslRepository.deleteByCommentId(commentId);
 
