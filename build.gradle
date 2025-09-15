@@ -68,6 +68,8 @@ dependencies {
     testRuntimeOnly 'com.h2database:h2:2.2.224'
 
     implementation 'org.jsoup:jsoup:1.17.2'   // 기사 크롤링
+
+    implementation 'io.micrometer:micrometer-registry-prometheus'
 }
 
 tasks.named('test') {

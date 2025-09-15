@@ -2,6 +2,10 @@ package com.codeit.monew.notification.service;
 
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.exception.comment.CommentErrorCode;
+import com.codeit.monew.exception.comment.CommentException;
+import com.codeit.monew.exception.interest.InterestErrorCode;
+import com.codeit.monew.exception.interest.InterestException;
 import com.codeit.monew.exception.notification.NotificationErrorCode;
 import com.codeit.monew.exception.notification.NotificationException;
 import com.codeit.monew.interest.entity.Interest;
@@ -13,8 +17,9 @@ import com.codeit.monew.notification.repository.NotificationRepository;
 import com.codeit.monew.notification.response_dto.CursorPageResponseNotificationDto;
 import com.codeit.monew.notification.response_dto.NotificationDto;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.exception.UserErrorCode;
+import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -40,10 +45,11 @@ public class NotificationService {
       int articleCount) {
 
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
     Interest interest = interestRepository.findById(interestId)
-        .orElseThrow(() -> new EntityNotFoundException("Interest not found"));
+        .orElseThrow(() -> new InterestException(
+            InterestErrorCode.INTEREST_NOT_FOUND, Map.of("interestId", interestId)));
 
     String message = String.format("[%s]와 관련된 기사가 %d건 등록되었습니다.",
         interest.getName(), articleCount);
@@ -63,13 +69,13 @@ public class NotificationService {
       UUID commentId,
       UUID likeByUserId) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
 
     User likeByUser = userRepository.findById(likeByUserId)
-        .orElseThrow(() -> new EntityNotFoundException("User not found"));
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("likeByUserId", likeByUserId)));
 
     Comment comment = commentRepository.findById(commentId)
-        .orElseThrow(() -> new EntityNotFoundException("Comment not found"));
+        .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
 
     if (!comment.getUser().getId().equals(user.getId())) {
       throw new IllegalArgumentException("해당 댓글은 이 사용자의 댓글이 아닙니다.");
