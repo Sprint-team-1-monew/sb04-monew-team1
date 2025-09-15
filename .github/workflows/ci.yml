@@ -35,6 +35,9 @@ jobs:
       - name: Compile (generate Q classes)
         run: ./gradlew clean build --rerun-tasks --no-daemon
 
+      - name: Debug generated sources
+        run: ls -R build/generated/sources/annotationProcessor/java/main || true
+
       - name: Run tests with coverage (force rerun)
         run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --rerun-tasks --no-daemon
 
