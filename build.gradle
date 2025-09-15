@@ -101,3 +101,17 @@ jacocoTestCoverageVerification {
         }
     }
 }
+
+// Q클래스 생성 경로 등록
+sourceSets {
+    main {
+        java {
+            srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
+        }
+    }
+}
+
+tasks.withType(JavaCompile) {
+    options.annotationProcessorGeneratedSourcesDirectory =
+            file("$buildDir/generated/sources/annotationProcessor/java/main")
+}
