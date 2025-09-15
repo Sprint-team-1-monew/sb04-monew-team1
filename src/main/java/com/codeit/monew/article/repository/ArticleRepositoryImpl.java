@@ -6,15 +6,12 @@ import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.types.Order;
 import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.core.types.dsl.BooleanExpression;
-import com.querydsl.core.types.dsl.Expressions;
 import com.querydsl.jpa.impl.JPAQueryFactory;
-
 import jakarta.persistence.EntityManager;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import org.springframework.cglib.core.Local;
 
 public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
 
@@ -57,17 +54,18 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
       where.and(q.articlePublishDate.between(publishDateFrom, publishDateTo));
     }
 
-    // 2) 정렬/커서
+    // 정렬
     Order dir = isDesc(direction) ? Order.DESC : Order.ASC;
     List<OrderSpecifier<?>> orders = buildOrderSpecifiers(orderBy, dir, q);
 
+    // 커서
     if (cursor != null && !cursor.isBlank()) {
       where.and(buildCursorCondition(cursor, orderBy, dir, q, after));
     } else if (after != null) {
       where.and(q.createdAt.gt(after));
     }
 
-    // 3) 조회 (limit + 1은 호출부에서 hasNext 판단 시 사용)
+    // 조회 (limit + 1은 호출부에서 hasNext 판단 시 사용)
     List<Article> rows = queryFactory
         .selectFrom(q)
         .where(where)
@@ -155,22 +153,25 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
         BooleanExpression primaryCmp =
             (dir == Order.DESC) ? qArticle.articleCommentCount.lt(Long.valueOf(cursor))
                 : qArticle.articleCommentCount.gt(Long.valueOf(cursor));
-        return primaryCmp
-            .or(qArticle.createdAt.eq(after).or(qArticle.createdAt.after(after)));
+        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
+            .or(qArticle.createdAt.after(after));
+        return primaryCmp.and(createdAtCmp);
       }
       case "viewCount": {
         BooleanExpression primaryCmp =
             (dir == Order.DESC) ? qArticle.articleViewCount.lt(Long.valueOf(cursor))
                 : qArticle.articleViewCount.gt(Long.valueOf(cursor));
-        return primaryCmp
-            .or(qArticle.createdAt.eq(after).or(qArticle.createdAt.after(after)));
+        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
+            .or(qArticle.createdAt.after(after));
+        return primaryCmp.and(createdAtCmp);
       }
       case "publishDate": {
         BooleanExpression primaryCmp =
             (dir == Order.DESC) ? qArticle.articlePublishDate.lt(LocalDateTime.parse(cursor))
                 : qArticle.articlePublishDate.gt(LocalDateTime.parse(cursor));
-        return primaryCmp
-            .or(qArticle.createdAt.eq(after).or(qArticle.createdAt.after(after)));
+        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
+            .or(qArticle.createdAt.after(after));
+        return primaryCmp.and(createdAtCmp);
       }
     }
     return null;
