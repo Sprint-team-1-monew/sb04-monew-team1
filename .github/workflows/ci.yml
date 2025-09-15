@@ -32,14 +32,8 @@ jobs:
       - name: Cache Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Compile (generate Q classes)
-        run: ./gradlew clean build --rerun-tasks --no-daemon
-
-      - name: Debug generated sources
-        run: ls -R build/generated/sources/annotationProcessor/java/main || true
-
-      - name: Run tests with coverage (force rerun)
-        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --rerun-tasks --no-daemon
+      - name: Run tests without coverage
+        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --no-daemon
 
       - name: Upload coverage report (HTML)
         uses: actions/upload-artifact@v4
@@ -47,12 +41,12 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/test/html
 
-# 커버리지 수치를 jacoco XML에서 뽑은 다음 PR 코멘트로 남기기
+      # 커버리지 수치를 jacoco XML에서 뽑은 다음 PR 코멘트로 남기기
       - name: Install xmllint (parsing XML) # xmllint 설치하기
         run: sudo apt-get update && sudo apt-get install -y libxml2-utils
         # 업데이트를 꼭 해야하는가?
 
-# 커버리지 코멘트 설계
+      # 커버리지 코멘트 설계
       - name: Extract coverage numbers
         id: coverage
         run: |
@@ -66,7 +60,7 @@ jobs:
           echo "total=$TOTAL" >> $GITHUB_OUTPUT
           echo "pct=$PCT" >> $GITHUB_OUTPUT
 
-# 커버리지 PR 남기기
+      # 커버리지 PR 남기기
       - name: Post coverage comment PR
         if: ${{ github.event_name == 'pull_request' }}
         uses: marocchino/sticky-pull-request-comment@v2
@@ -77,9 +71,9 @@ jobs:
             - **CoverageLine(커버리지_라인)** ${{ steps.coverage.outputs.pct }}% (${{ steps.coverage.outputs.covered }} / ${{ steps.coverage.outputs.total }})
             - **Missed(커버리지_수치)** ${{ steps.coverage.outputs.missed }}
             - [HTML 리포트](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}) (Artifact) 확인하기
-            
+      
 
-# ECR에 업로드하기
+      # ECR에 업로드하기
       # 1. AWS에 로그인하기, Access Key, Secret Key, Region, Json
       - name: AWS Configure
         uses: aws-actions/configure-aws-credentials@v4
@@ -87,7 +81,7 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-#          default-output-format: json
+      #          default-output-format: json
 
       # 2. AWS public ECR에 로그인하기, ECR은 무조건 us-east-1을 통해 로그인한다
       - name: Login AWS Public ECR
