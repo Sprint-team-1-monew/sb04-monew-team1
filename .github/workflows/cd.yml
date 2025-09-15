@@ -20,7 +20,7 @@ env:
 
 
 jobs:
-  desploy:
+  deploy:
     # CD workflows가 workflow_run에 의해 호출되고 CI가 성공일경우에만 배포
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
@@ -48,7 +48,7 @@ jobs:
           uses: aws-actions/amazon-ecs-deploy-task-definition@v2
           with:
             task-definition: ecs/taskdef-base.json # 위의 render 참조
-            service: monew-task-service-ldy1dnpu
+            service: monew-task-service-13fqphcy
             cluster: cluster-monew
             wait-for-service-stability: true # 새로운 서비스가 안정화 될 때까지 기다림
 
