@@ -3,10 +3,11 @@ package com.codeit.monew.activity_management.response_dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record ArticleViewDto(
+public record UserArticleViewDto(
   UUID id,
   UUID viewedBy,
   LocalDateTime createdAt,
+  UUID articleId,
   String source,
   String sourceUrl,
   String articleTitle,

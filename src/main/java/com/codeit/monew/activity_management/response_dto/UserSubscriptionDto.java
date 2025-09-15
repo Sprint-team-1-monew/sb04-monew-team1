@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public record SubscriptionDto(
+public record UserSubscriptionDto(
   UUID id,
   UUID interestId,
   String interestName,
