@@ -38,9 +38,11 @@ public class Article extends BaseEntity {
   @Column(name = "article_summary", nullable = false)
   private String articleSummary;
 
+  @Setter
   @Column(name = "article_comment_count", nullable = false)
   private long articleCommentCount;
 
+  @Setter
   @Column(name = "article_view_count", nullable = false)
   private long articleViewCount;
 
