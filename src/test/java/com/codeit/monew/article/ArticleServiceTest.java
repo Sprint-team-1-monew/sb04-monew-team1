@@ -22,6 +22,7 @@ import com.codeit.monew.article.response_dto.ArticleDto;
 import com.codeit.monew.article.response_dto.ArticleViewDto;
 import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
 import com.codeit.monew.article.service.ArticleService;
+import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.user.entity.User;
@@ -46,6 +47,9 @@ class ArticleServiceTest {
 
   @Mock
   ArticleViewUserRepository articleViewUserRepository;
+
+  @Mock
+  CommentRepository commentRepository;
 
   @Mock
   UserRepository userRepository;
