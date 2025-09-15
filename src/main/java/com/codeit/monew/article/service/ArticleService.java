@@ -9,6 +9,7 @@ import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
 import com.codeit.monew.article.response_dto.ArticleViewDto;
 import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
+import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
@@ -36,6 +37,7 @@ public class ArticleService {
   private final ArticleViewUserRepository articleViewUserRepository;
   private final UserRepository userRepository;
   private final ArticleViewMapper articleViewMapper;
+  private final CommentRepository commentRepository;
 
   public void softDeleteArticle(UUID articleId) {
     log.info("기사 논리 삭제 시작 {}", articleId);
@@ -125,6 +127,8 @@ public class ArticleService {
       article, user.getId(), viewUser.getCreatedAt()
     );
 
+    updateArticleViewAndCommentCount(article);
+
     log.info("기사 뷰 DTO 조회 완료 - articleId={}, requestUserId={}, viewedAt={}",
         articleId, requestUserId, viewUser.getCreatedAt());
 
@@ -176,5 +180,13 @@ public class ArticleService {
         });
     log.info("유저 존재 검증 완료 {}", userId);
     return user;
+  }
+
+  private void updateArticleViewAndCommentCount(Article article){
+    int articleViewCount = articleViewUserRepository.countByArticle(article);
+    int articleCommentCount = commentRepository.countByArticle(article);
+    article.setArticleViewCount(articleViewCount);
+    article.setArticleCommentCount(articleCommentCount);
+    articleRepository.save(article);
   }
 }
