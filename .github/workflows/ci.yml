@@ -33,7 +33,7 @@ jobs:
         uses: gradle/actions/setup-gradle@v3
 
       - name: Compile (generate Q classes)
-        run: ./gradlew clean build --no-daemon
+        run: ./gradlew clean build --rerun-tasks --no-daemon
 
       - name: Run tests with coverage (force rerun)
         run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --rerun-tasks --no-daemon
