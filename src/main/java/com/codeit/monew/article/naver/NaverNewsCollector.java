@@ -68,8 +68,7 @@ public class NaverNewsCollector {
   }
 
   @Transactional
-  //@Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")// 매 시간 정각 마다
-  @Scheduled(cron = "1 * * * * *", zone = "Asia/Seoul")// 매 분 마다
+  @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
   public void fetchAndSaveHourly() throws InterruptedException {
     log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     int display = 100;
