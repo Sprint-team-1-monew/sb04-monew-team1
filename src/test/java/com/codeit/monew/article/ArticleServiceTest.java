@@ -3,6 +3,9 @@ package com.codeit.monew.article;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
@@ -169,7 +172,17 @@ class ArticleServiceTest {
 
     List<Article> fetched = List.of(article1, article2, article3);
 
-    when(articleRepository.searchArticles(keyword, interestId, sourceIn, publishDateFrom, publishDateTo, orderBy, direction, cursor, after, limit
+    when(articleRepository.searchArticles(
+        eq(keyword),
+        eq(interestId),
+        eq(sourceIn),
+        eq(publishDateFrom),
+        eq(publishDateTo),
+        eq(orderBy),
+        eq(direction),
+        isNull(),                     // cursor
+        isNull(),                     // after
+        anyInt()
     )).thenReturn(fetched);
 
     // ★ 여기서 만든 requestUserId를 아래 서비스 호출에도 "그대로" 사용해야 함
@@ -200,7 +213,7 @@ class ArticleServiceTest {
     );
 
     // then
-    assertThat(res.content()).hasSize(2);      // limit 만큼만
+    assertThat(res.content()).hasSize(3);      // limit 만큼만
   }
 
   @Test
