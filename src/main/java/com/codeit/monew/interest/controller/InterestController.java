@@ -7,6 +7,7 @@ import com.codeit.monew.interest.response_dto.InterestDto;
 import com.codeit.monew.interest.service.InterestService;
 import com.codeit.monew.subscriptions.dto.SubscriptionDto;
 import com.codeit.monew.subscriptions.service.SubscriptionService;
+import jakarta.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +35,7 @@ public class InterestController {
 
   @PostMapping
   public ResponseEntity<InterestDto> registerInterest(
-      @RequestBody InterestRegisterRequest request) {
+     @Valid @RequestBody InterestRegisterRequest request) {
     InterestDto result = interestService.registerInterest(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(result);
   }
@@ -58,7 +59,7 @@ public class InterestController {
   @PatchMapping("/{interestId}")
   public ResponseEntity<InterestDto> updateInterest(
       @PathVariable UUID interestId,
-      @RequestBody InterestUpdateRequest request
+      @Valid @RequestBody InterestUpdateRequest request
   ) {
     InterestDto result = interestService.updateInterest(interestId, request);
     return ResponseEntity.ok(result);
