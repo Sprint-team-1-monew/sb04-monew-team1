@@ -2,7 +2,12 @@ package com.codeit.monew.activity_management;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.codeit.monew.activity_management.response_dto.CommentActivityDto;
+import com.codeit.monew.activity_management.response_dto.CommentLikeActivityDto;
 import com.codeit.monew.activity_management.response_dto.UserActivityDto;
+import com.codeit.monew.activity_management.response_dto.UserArticleViewDto;
+import com.codeit.monew.activity_management.response_dto.UserSubscriptionDto;
+import com.codeit.monew.activity_management.service.UserActivityService;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.DisplayName;
