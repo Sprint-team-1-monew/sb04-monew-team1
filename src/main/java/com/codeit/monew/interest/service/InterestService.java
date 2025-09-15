@@ -153,8 +153,7 @@ public class InterestService {
     // 관련 키워드들도 소프트 삭제
     List<Keyword> activeKeywords = keywordRepository.findByInterestAndIsDeletedFalse(interest);
     activeKeywords.forEach(Keyword::softDelete);
-
-    // 해당 관심사를 구독한 모든 구독 정보 삭제
+    
     List<Subscription> subscriptions = subscriptionRepository.findAllByInterest(interest);
     subscriptionRepository.deleteAll(subscriptions);
 
