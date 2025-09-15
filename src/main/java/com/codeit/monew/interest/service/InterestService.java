@@ -14,6 +14,7 @@ import com.codeit.monew.interest.request.InterestRegisterRequest;
 import com.codeit.monew.interest.request.InterestUpdateRequest;
 import com.codeit.monew.interest.response_dto.CursorPageResponseInterestDto;
 import com.codeit.monew.interest.response_dto.InterestDto;
+import com.codeit.monew.subscriptions.entity.Subscription;
 import com.codeit.monew.subscriptions.repository.SubscriptionRepository;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
@@ -137,6 +138,7 @@ public class InterestService {
 
     return interestMapper.toDto(interest, newKeywords,null);
   }
+
   @Transactional
   public void softDeleteInterest(UUID interestId) {
     Interest interest = interestRepository.findByIdAndIsDeletedFalse(interestId)
@@ -151,6 +153,10 @@ public class InterestService {
     // 관련 키워드들도 소프트 삭제
     List<Keyword> activeKeywords = keywordRepository.findByInterestAndIsDeletedFalse(interest);
     activeKeywords.forEach(Keyword::softDelete);
+
+    // 해당 관심사를 구독한 모든 구독 정보 삭제
+    List<Subscription> subscriptions = subscriptionRepository.findAllByInterest(interest);
+    subscriptionRepository.deleteAll(subscriptions);
 
     // 저장
     interestRepository.save(interest);
