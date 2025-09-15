@@ -68,6 +68,8 @@ public class ArticleService {
     log.info("뉴스 기사 검색 시작 - keyword={}, interestId={}, sourceIn={}, publishDateFrom={}, publishDateTo={}, orderBy={}, direction={}, cursor={}, after={}, limit={}, requestUserId={}",
         keyword, interestId, sourceIn, publishDateFrom, publishDateTo, orderBy, direction, cursor, after, limit, requestUserId);
 
+    limit = 50; // 50으로 강제 고정
+
     List<Article> articles = articleRepository.searchArticles(keyword, interestId, sourceIn, publishDateFrom, publishDateTo, orderBy, direction, cursor, after, limit);
     List<ArticleDto> content = new ArrayList<>();
     Optional<User> user = userRepository.findById(requestUserId); // npe 날 수 있으니 예외 처리, 충돌을 우려하며 나중에 유저 쪽 코드랑 머지 되었을 때 예외 처리 추가
@@ -102,8 +104,10 @@ public class ArticleService {
       content.add(dto);
     }
 
+    CursorPageResponseArticleDto responseArticleDto = new CursorPageResponseArticleDto(content, nextCursor, nextAfter, size, totalElements, hasNex);
+
     log.info("뉴스 기사 검색 완료");
-    return new CursorPageResponseArticleDto(content, nextCursor, nextAfter, size, totalElements, hasNex);
+    return responseArticleDto;
   }
 
   public ArticleViewDto getArticleViewDto(UUID articleId, UUID requestUserId) {
