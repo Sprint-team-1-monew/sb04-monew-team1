@@ -148,32 +148,35 @@ public class ArticleRepositoryImpl implements ArticleRepositoryCustom {
 
   private BooleanExpression buildCursorCondition(String cursor, String orderBy, Order dir, QArticle qArticle, LocalDateTime after) {
     // 비교 헬퍼
+    BooleanExpression primaryCmp = null;
     switch (orderBy == null ? "" : orderBy) {
       case "commentCount": {
-        BooleanExpression primaryCmp =
+        primaryCmp =
             (dir == Order.DESC) ? qArticle.articleCommentCount.lt(Long.valueOf(cursor))
                 : qArticle.articleCommentCount.gt(Long.valueOf(cursor));
-        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
-            .or(qArticle.createdAt.after(after));
-        return primaryCmp.and(createdAtCmp);
       }
       case "viewCount": {
-        BooleanExpression primaryCmp =
+        primaryCmp =
             (dir == Order.DESC) ? qArticle.articleViewCount.lt(Long.valueOf(cursor))
                 : qArticle.articleViewCount.gt(Long.valueOf(cursor));
-        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
-            .or(qArticle.createdAt.after(after));
-        return primaryCmp.and(createdAtCmp);
       }
       case "publishDate": {
-        BooleanExpression primaryCmp =
+        primaryCmp =
             (dir == Order.DESC) ? qArticle.articlePublishDate.lt(LocalDateTime.parse(cursor))
                 : qArticle.articlePublishDate.gt(LocalDateTime.parse(cursor));
-        BooleanExpression createdAtCmp = qArticle.createdAt.eq(after)
-            .or(qArticle.createdAt.after(after));
-        return primaryCmp.and(createdAtCmp);
       }
     }
-    return null;
+
+    BooleanExpression createdAtCmp = null;
+    if (dir == Order.DESC) {
+      createdAtCmp = qArticle.createdAt.eq(after)
+          .or(qArticle.createdAt.before(after));
+    }
+    else if (dir == Order.ASC) {
+      createdAtCmp = qArticle.createdAt.eq(after)
+          .or(qArticle.createdAt.after(after));
+    }
+
+    return  primaryCmp.and(createdAtCmp);
   }
 }
