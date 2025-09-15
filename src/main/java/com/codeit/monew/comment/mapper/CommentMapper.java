@@ -3,7 +3,6 @@ package com.codeit.monew.comment.mapper;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
-import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
 import com.codeit.monew.user.entity.User;
 import java.util.UUID;
@@ -29,7 +28,6 @@ public interface CommentMapper {
   @Mapping(target = "articleId", ignore = true)
   @Mapping(target = "userId", ignore = true)
   CommentDto toCommentDto(Comment comment);
-
 
   // User 매핑용 추가
   default User mapUser(UUID userId) {
