@@ -43,11 +43,10 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final' // 맵 스트럭트
     implementation 'software.amazon.awssdk:s3:2.31.7' // S3
 
-    // QueryDSL (Spring Boot 3.x = jakarta)
     implementation 'com.querydsl:querydsl-jpa:5.0.0:jakarta'
     annotationProcessor "com.querydsl:querydsl-apt:5.0.0:jakarta"
-    annotationProcessor "jakarta.annotation:jakarta.annotation-api:2.1.1"
-    annotationProcessor "jakarta.persistence:jakarta.persistence-api:3.1.0"
+    annotationProcessor "jakarta.annotation:jakarta.annotation-api"
+    annotationProcessor "jakarta.persistence:jakarta.persistence-api"
 
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
     implementation 'com.fasterxml.jackson.core:jackson-databind' // JSON 파싱
@@ -99,28 +98,6 @@ jacocoTestCoverageVerification {
                 value = 'COVEREDRATIO'
 //                minimum = 0.80 // 80% 미만이면 실패함
             }
-        }
-    }
-}
-
-// Q클래스 생성 Task
-tasks.register("generateQuerydsl", JavaCompile) {
-    source = sourceSets.main.java
-    classpath = configurations.compileClasspath
-    options.annotationProcessorPath = configurations.annotationProcessor
-    destinationDirectory.set(file("$buildDir/generated/sources/annotationProcessor/java/main"))
-}
-
-compileJava {
-    dependsOn tasks.named("generateQuerydsl")
-    source("$buildDir/generated/sources/annotationProcessor/java/main")
-}
-
-// 소스셋 등록
-sourceSets {
-    main {
-        java {
-            srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
         }
     }
 }
