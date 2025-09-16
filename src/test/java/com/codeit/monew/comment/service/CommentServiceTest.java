@@ -264,8 +264,8 @@ public class CommentServiceTest {
     //then
     assertThat(result).isNotNull();
     assertThat(result.content()).hasSize(1);
-    assertThat(result.content().get(0).getContent()).isEqualTo("테스트 댓글");
-    assertThat(result.content().get(0).getArticleId()).isEqualTo(articleId);
+    assertThat(result.content().get(0).content()).isEqualTo("테스트 댓글");
+    assertThat(result.content().get(0).articleId()).isEqualTo(articleId);
     assertThat(result.hasNext()).isFalse();
 
   }
