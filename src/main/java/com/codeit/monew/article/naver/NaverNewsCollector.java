@@ -19,7 +19,6 @@ import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -68,12 +67,12 @@ public class NaverNewsCollector {
   }
 
   @Transactional
-  @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
-  public void fetchAndSaveHourly() throws InterruptedException {
+  public int naverArticleCollect() throws InterruptedException {
     log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     int display = 100;
     int start = 1;
     String sort = "date";
+    int collectedNewArticlesCount = 0;
 
     List<Interest> interests = interestRepository.findAll();
     // 모든 관심사를 가져옴
@@ -92,7 +91,7 @@ public class NaverNewsCollector {
 
           if (lastArticle.isPresent()){
             if (newArticle.getArticlePublishDate().isBefore(lastArticle.get().getArticlePublishDate())) {
-              log.info("네이버 기사 발행일: {}, 저장된 마지막 기사 발행일: {}", newArticle.getArticlePublishDate(), lastArticle.get().getArticlePublishDate());
+              //log.info("네이버 기사 발행일: {}, 저장된 마지막 기사 발행일: {}", newArticle.getArticlePublishDate(), lastArticle.get().getArticlePublishDate());
               isPrior = true;
               break;
             }
@@ -107,13 +106,15 @@ public class NaverNewsCollector {
       for (int i = sortedNaverNewsItems.size() - 1; i >= 0; i--) {
         articleRepository.save(sortedNaverNewsItems.get(i));
         TimeUnit.MILLISECONDS.sleep(1); // createdAt 값이 유니크해져서 정렬하기 편해진다.
+        collectedNewArticlesCount++;
       }
     }
-    log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
-    log.info("네이버 기사 수집 후 총 기사 개수: {}", articleRepository.count());
+    //log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
+    //log.info("네이버 기사 수집 후 총 기사 개수: {}", articleRepository.count());
+    return collectedNewArticlesCount;
   }
-  // 관심사가 등록될 때 호출 할까?
-  @Transactional
+
+  @Transactional(readOnly = true)
   protected Article buildArticleFromNaverItem(NaverNewsItem item, Interest interest) {
 
     List<Keyword> keywords = keywordRepository.findByInterest(interest);
@@ -149,7 +150,7 @@ public class NaverNewsCollector {
     return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
   }
 
-  @Transactional
+  @Transactional(readOnly = true)
   protected boolean isArticleDuplicated(Article article) {
     log.info("네이버 기사 중복 검사 시작: {}", article.getSourceUrl());
     Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
@@ -159,5 +160,10 @@ public class NaverNewsCollector {
     } 
     log.info("네이버 기사 중복 검사 종료: {}", article.getSourceUrl());
     return false;
+  }
+
+  @Transactional(readOnly = true)
+  public int getAllNaverArticlesCount() {
+    return articleRepository.countBySource("Naver");
   }
 }

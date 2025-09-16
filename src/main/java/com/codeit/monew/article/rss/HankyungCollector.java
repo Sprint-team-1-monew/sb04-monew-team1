@@ -21,7 +21,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.parser.Parser;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -38,12 +37,12 @@ public class HankyungCollector {
   private final KeywordRepository keywordRepository;
 
   @Transactional
-  @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
-  public void hankyungArticleFetchAndSaveHourly() throws Exception {
+  public int hankyungArticleCollect() throws Exception {
     log.info("한국경제 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     List<Interest> interests = interestRepository.findAll();
+    int collectedNewArticlesCount = 0;
 
-      List<RssItem> rssItems = getAllRss();
+    List<RssItem> rssItems = getAllRss();
     for (int i = rssItems.size() - 1; i >= 0; i--) {
       RssItem rssItem = rssItems.get(i);
       String summary = getArticleSummary(rssItem.link());
@@ -67,10 +66,12 @@ public class HankyungCollector {
       Article article = buildArticleFromHanKyungItem(rssItem, summary, targetInterest);
       if (!isArticleDuplicated(article)) {
         Article savedArticle = articleRepository.save(article);
-        log.info("기사 명: {}, 기사 요약: {}, 발매일: {}, 저장일: {}", savedArticle.getArticleTitle(), savedArticle.getArticleSummary(), savedArticle.getArticlePublishDate(), savedArticle.getCreatedAt());
+        collectedNewArticlesCount++;
+        //log.info("기사 명: {}, 기사 요약: {}, 발매일: {}, 저장일: {}", savedArticle.getArticleTitle(), savedArticle.getArticleSummary(), savedArticle.getArticlePublishDate(), savedArticle.getCreatedAt());
       }
     }
     log.info("한국경제 기사 수집 스케줄링 수집 종료: {}", LocalDateTime.now());
+    return collectedNewArticlesCount;
   }
 
   private boolean isArticleDuplicated(Article article) {
@@ -172,4 +173,8 @@ public class HankyungCollector {
         .build();
   }
 
+  @Transactional(readOnly = true)
+  public int getAllHanKyungArticlesCount() {
+    return articleRepository.countBySource("HanKyung  ");
+  }
 }

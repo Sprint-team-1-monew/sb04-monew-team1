@@ -1,5 +1,6 @@
 package com.codeit.monew.comment.service;
 
+import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.entity.CommentLike;
@@ -62,6 +63,9 @@ public class CommentService {
     }
 
     Comment saved = commentRepository.save(commentEntity);
+
+    updateCommentCount(saved.getArticle());
+
     log.info("댓글 등록 완료 : {}", saved);
     //응답 DTO 변환
     return commentMapper.toCommentDto(saved);
@@ -113,8 +117,8 @@ public class CommentService {
     commentLikeQuerydslRepository.deleteByCommentId(commentId);
 
     commentRepository.delete(comment);
+    updateCommentCount(comment.getArticle());
     log.info("댓글 물리 삭제 완료 : {}", commentId);
-
   }
 
   public CursorPageResponseCommentDto getComments(UUID articleId,
@@ -210,5 +214,11 @@ public class CommentService {
 
     comment.setLikeCount(comment.getLikeCount() - 1);
     commentRepository.save(comment);
+  }
+
+  private void updateCommentCount(Article article){
+    int articleCommentCount = commentRepository.countByArticle(article);
+    article.setArticleCommentCount(articleCommentCount);
+    articleRepository.save(article);
   }
 }
