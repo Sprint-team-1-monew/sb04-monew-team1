@@ -69,13 +69,13 @@ dependencies {
 
     implementation 'org.jsoup:jsoup:1.17.2'   // 기사 크롤링
 
-    implementation 'io.micrometer:micrometer-registry-prometheus'
-
 
     implementation 'software.amazon.awssdk:s3:2.31.7' // 아마존 S3 버킷 백업/복구
 
     implementation 'com.fasterxml.jackson.core:jackson-databind' // Jackson
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // Jackson
+
+    implementation 'org.springframework.boot:spring-boot-starter-logging' // 로깅
 }
 
 tasks.named('test') {
