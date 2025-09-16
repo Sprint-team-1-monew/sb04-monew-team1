@@ -1,0 +1,40 @@
+<configuration scan="true">
+  <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - [%X{requestId}] [%X{requestHttpMethod}] [%X{requestPath}] %msg%n"/>
+  <property name="LOG_PATH" value="log"/>
+  <property name="LOG_FILE_NAME" value="application.log"/>
+
+  <!-- dev/prod에서만 appender 정의 -->
+  <springProfile name="dev,prod">
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+      <encoder><pattern>${LOG_PATTERN}</pattern></encoder>
+    </appender>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+      <encoder><pattern>${LOG_PATTERN}</pattern></encoder>
+      <file>${LOG_PATH}/${LOG_FILE_NAME}</file>
+      <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+        <fileNamePattern>${LOG_PATH}/archive/application.%d{yyyy-MM-dd}.log</fileNamePattern>
+        <maxHistory>30</maxHistory>
+      </rollingPolicy>
+    </appender>
+  </springProfile>
+
+  <!-- 개발 환경 -->
+  <springProfile name="dev">
+    <root>
+      <appender-ref ref="CONSOLE"/>
+      <appender-ref ref="FILE"/>
+    </root>
+  </springProfile>
+
+  <!-- 운영 환경 -->
+  <springProfile name="prod">
+    <root>
+      <appender-ref ref="FILE"/>
+    </root>
+  </springProfile>
+
+  <!-- 테스트 환경 -->
+  <springProfile name="test">
+    <root level="OFF"/>
+  </springProfile>
+</configuration>

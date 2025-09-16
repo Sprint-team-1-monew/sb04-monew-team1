@@ -25,9 +25,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional(readOnly = true)
 @RequiredArgsConstructor
@@ -38,9 +40,13 @@ public class UserActivityService {
 
   public UserActivityDto getUserActivity(UUID userId) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId",userId)));
+        .orElseThrow(() -> {
+          log.warn("존재하지 않는 사용자 {}", userId);
+          return new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+        });
 
     if(user.getUserStatus() == UserStatus.DELETED) {
+      log.warn("삭제된 사용자 {}", userId);
       throw new UserException(UserErrorCode.DELETED_USER, Map.of("userId", userId));
     }
 
