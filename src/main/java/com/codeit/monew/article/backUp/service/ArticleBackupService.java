@@ -1,6 +1,6 @@
 package com.codeit.monew.article.backUp.service;
 
-import com.codeit.monew.article.backUp.ArticleBackupDto;
+import com.codeit.monew.article.backUp.dto.ArticleBackupDto;
 import com.codeit.monew.article.backUp.aws.BackupUtility;
 import com.codeit.monew.article.backUp.repository.ArticleBackupRepository;
 import com.codeit.monew.article.entity.Article;
