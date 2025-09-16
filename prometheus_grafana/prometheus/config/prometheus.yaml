@@ -1,0 +1,31 @@
+# my global config
+global:
+  scrape_interval: 15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.
+  scrape_timeout: 15s
+  evaluation_interval: 2m # Evaluate rules every 15 seconds. The default is every 1 minute.
+  # scrape_timeout is set to the global default (10s).
+  external_labels:
+    monitor: monew-monitor
+  query_log_file: query_log_file.log
+
+# Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+rule_files:
+  - rule.yaml
+
+# A scrape configuration containing exactly one endpoint to scrape:
+# Here it's Prometheus itself.
+scrape_configs:
+  # Spring Boot 앱 모니터링
+  - job_name: 'spring-app'
+    metrics_path: '/actuator/prometheus'
+    scheme: 'http'
+    static_configs:
+      - targets: ['3.38.137.13:8080']  # 실제 서버 IP 또는 localhost
+
+  # Prometheus 자체 모니터링
+  - job_name: 'prometheus'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          app: 'prometheus'
