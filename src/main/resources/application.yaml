@@ -17,3 +17,11 @@ spring:
     active: dev
   application:
     name: monew-app
+
+aws:
+  s3:
+    region: ap-northeast-2
+
+app:
+  backup:
+    bucket: monew-test-bucket-backuptest

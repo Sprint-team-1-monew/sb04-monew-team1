@@ -2,9 +2,9 @@ package com.codeit.monew.article.backUp.aws;
 
 import java.time.LocalDate;
 
-public class BackupUtility {
+public class BackupKeyMaker {
     // S3에 백업파일을 저장할 때 파일 경로(키)를 만들어주는 유틸리티
-    private BackupUtility() {}
+    private BackupKeyMaker() {}
 
     public static String keyFor(LocalDate date) {
         String y = "%04d".formatted(date.getYear());
