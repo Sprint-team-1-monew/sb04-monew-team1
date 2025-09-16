@@ -3,6 +3,9 @@ package com.codeit.monew.comment.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
@@ -107,11 +110,21 @@ public class CommentServiceTest {
         LocalDateTime.now()
     );
 
-    given(userRepository.existsById(any())).willReturn(true);
-    given(articleRepository.existsById(any())).willReturn(true);
+    User mockUser = User.builder()
+        .id(userId)
+        .nickname("tester")
+        .build();
+
+
+    Article mockArticle = Article.builder()
+        .id(articleId)
+        .build();
+
+    given(userRepository.findById(any())).willReturn(Optional.of(mockUser));
+    given(articleRepository.findById(any())).willReturn(Optional.of(mockArticle));
     given(commentMapper.toCommentEntity(commentRegisterRequest)).willReturn(mappedEntity);
     given(commentRepository.save(mappedEntity)).willReturn(savedEntity);
-    given(commentMapper.toCommentDto(savedEntity)).willReturn(expectedDto);
+    given(commentMapper.toCommentDto(savedEntity, expectedDto.likedByMe())).willReturn(expectedDto);
 
     // when
     CommentDto result = commentService.createComment(commentRegisterRequest);
@@ -120,7 +133,7 @@ public class CommentServiceTest {
     assertNotNull(result);
     then(commentMapper).should().toCommentEntity(commentRegisterRequest);
     then(commentRepository).should().save(mappedEntity);
-    then(commentMapper).should().toCommentDto(savedEntity);
+    then(commentMapper).should().toCommentDto(savedEntity, expectedDto.likedByMe());
   }
 
   @Test
@@ -147,7 +160,7 @@ public class CommentServiceTest {
     given(commentRepository.findById(commentId)).willReturn(Optional.of(mappedEntity));
     given(commentRepository.save(any(Comment.class))).willAnswer(
         invocation -> invocation.getArgument(0));
-    given(commentMapper.toCommentDto(any(Comment.class)))
+    given(commentMapper.toCommentDto(any(Comment.class), eq(false)))
         .willReturn(new CommentDto(
             commentId,
             articleId,
@@ -165,8 +178,8 @@ public class CommentServiceTest {
     // then
     assertThat(result.content()).isEqualTo("수정된 내용");
     verify(commentRepository).findById(commentId);
-    verify(commentRepository).save(mappedEntity);
-    then(commentMapper).should().toCommentDto(any(Comment.class));
+    verify(commentRepository).save(any(Comment.class));
+    then(commentMapper).should().toCommentDto(any(Comment.class), eq(false));
 
   }
 
@@ -247,9 +260,28 @@ public class CommentServiceTest {
         .article(dummyArticle)
         .build();
 
-    given(commentRepositoryCustom.findComments(eq(articleId), eq(CommentOrderBy.createdAt), eq(
-        SortDirection.DESC), any(String.class), any(LocalDateTime.class), eq(10))).willReturn(
-        List.of(mappedEntity));
+    CommentDto dummyDto = new CommentDto(
+        mappedEntity.getId(),               // UUID id
+        mappedEntity.getArticle().getId(),  // UUID articleId
+        mappedEntity.getUser().getId(),     // UUID userId
+        mappedEntity.getUser().getNickname(), // String userNickname
+        mappedEntity.getContent(),          // String content
+        0L,                                 // Long likeCount
+        false,                               // Boolean likedByMe
+        mappedEntity.getCreatedAt()         // LocalDateTime createdAt
+    );
+
+    given(commentRepository.findComments(
+        any(UUID.class),
+        any(CommentOrderBy.class),
+        any(SortDirection.class),
+        anyString(),
+        any(LocalDateTime.class),
+        anyInt()
+    )).willReturn(List.of(mappedEntity));
+
+    given(commentMapper.toCommentDto(any(Comment.class), anyBoolean()))
+        .willReturn(dummyDto);
 
     //when
     CursorPageResponseCommentDto result = commentService.getComments(articleId,

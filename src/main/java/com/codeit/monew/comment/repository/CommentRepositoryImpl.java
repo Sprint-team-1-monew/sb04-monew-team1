@@ -56,7 +56,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         .leftJoin(comment.article).fetchJoin()
         .where(where)
         .orderBy(orderSpecifier)
-        .limit(limit)
+        .limit(limit+1)
         .fetch();
   }
 }

@@ -5,11 +5,13 @@ import com.codeit.monew.comment.entity.Comment;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-
-public interface CommentRepository extends JpaRepository<Comment, UUID> {
+@Repository
+public interface CommentRepository extends JpaRepository<Comment, UUID>, CommentRepositoryCustom {
 
   Optional<Comment> findById(UUID id);
 
   int countByArticle(Article article);
+  Long countByArticleId(UUID id);
 }
