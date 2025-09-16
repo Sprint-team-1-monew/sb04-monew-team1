@@ -1,7 +1,7 @@
 package com.codeit.monew.article.backUp.service;
 
-import com.codeit.monew.article.backUp.dto.ArticleBackupDto;
-import com.codeit.monew.article.backUp.aws.BackupKeyMaker;
+import com.codeit.monew.article.backUp.ArticleBackupDto;
+import com.codeit.monew.article.backUp.aws.BackupUtility;
 import com.codeit.monew.article.backUp.repository.ArticleBackupRepository;
 import com.codeit.monew.article.entity.Article;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -55,8 +55,8 @@ public class ArticleBackupService {
         LocalDateTime start = date.atStartOfDay();
         LocalDateTime end = date.plusDays(1).atStartOfDay();
 
-        String backupKey = BackupKeyMaker.keyFor(date);
-        String tempKey = BackupKeyMaker.tempKeyFor(date, UUID.randomUUID().toString()); // UUID String
+        String backupKey = BackupUtility.keyFor(date);
+        String tempKey = BackupUtility.tempKeyFor(date, UUID.randomUUID().toString()); // UUID String
 
         Path tmp = null;
         try {
