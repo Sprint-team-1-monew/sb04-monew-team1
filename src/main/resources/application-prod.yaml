@@ -19,6 +19,20 @@ management:
       exposure:
         include: health,info,metrics,prometheus
 
+# 뉴스기사 s3버킷에 저장하기용
+cloud:
+  aws:
+    credentials:
+      accessKey: ${AWS_S3_ACCESS_KEY}
+      secretKey: ${AWS_S3_SECRET_KEY}
+    s3:
+      bucket: ${AWS_S3_BUCKET}
+#      dir: # S3 디렉토리 이름 적는곳인데 나는 디렉토리가 없다
+    region:
+      static: ${AWS_S3_REGION}
+    stack:
+      auto: false
+
 naver:
   api:
     client-id: ${NAVER_CLIENT_ID}
