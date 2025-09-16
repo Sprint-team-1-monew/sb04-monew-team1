@@ -73,7 +73,9 @@ public class UserActivityService {
         .from(subscription)
         .where(
             subscription.user.id.eq(userId)
-        ).fetch();
+                .and(subscription.interest.isDeleted.isFalse())
+        )
+        .fetch();
 
 
     for(Tuple interestTuple : interestTuples) {
