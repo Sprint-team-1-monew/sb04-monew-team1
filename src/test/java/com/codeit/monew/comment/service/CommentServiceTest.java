@@ -16,8 +16,8 @@ import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
 import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
-import com.codeit.monew.comment.repository.CommentLikeQuerydslRepository;
-import com.codeit.monew.comment.repository.CommentLikeRepository;
+import com.codeit.monew.comment.repository.likeRepository.CommentLikeQuerydslRepositoryImpl;
+import com.codeit.monew.comment.repository.likeRepository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.comment.repository.CommentRepositoryCustom;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
@@ -52,7 +52,7 @@ public class CommentServiceTest {
   private CommentLikeRepository commentLikeRepository;
 
   @Mock
-  private CommentLikeQuerydslRepository commentLikeQuerydslRepository;
+  private CommentLikeQuerydslRepositoryImpl commentLikeQuerydslRepositoryImpl;
 
   @Mock
   private CommentRepositoryCustom commentRepositoryCustom;
@@ -215,7 +215,7 @@ public class CommentServiceTest {
     commentService.hardDeleteComment(commentId);
 
     //then
-    verify(commentLikeQuerydslRepository, times(1)).deleteByCommentId(commentId);
+    verify(commentLikeQuerydslRepositoryImpl, times(1)).deleteByCommentId(commentId);
     verify(commentRepository, times(1)).delete(mappedEntity);
 
   }
@@ -247,13 +247,13 @@ public class CommentServiceTest {
         .article(dummyArticle)
         .build();
 
-    given(commentRepositoryCustom.findComments(eq(articleId), eq(CommentOrderBy.CREATED_AT), eq(
+    given(commentRepositoryCustom.findComments(eq(articleId), eq(CommentOrderBy.createdAt), eq(
         SortDirection.DESC), any(String.class), any(LocalDateTime.class), eq(10))).willReturn(
         List.of(mappedEntity));
 
     //when
     CursorPageResponseCommentDto result = commentService.getComments(articleId,
-        CommentOrderBy.CREATED_AT,
+        CommentOrderBy.createdAt,
         SortDirection.DESC,
         "cursor-value",
         LocalDateTime.now(),

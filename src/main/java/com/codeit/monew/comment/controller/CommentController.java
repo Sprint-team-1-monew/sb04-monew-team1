@@ -41,19 +41,21 @@ public class CommentController {
   public ResponseEntity<CommentDto> createComment(
       @RequestBody @Valid CommentRegisterRequest commentRegisterRequest) {
     log.info("댓글 등록 요청 : {}", commentRegisterRequest);
+
     CommentDto create = commentService.createComment(commentRegisterRequest);
 
-    log.debug("댓글 등록 응답 : {}", create);
+    log.debug("댓글 등록 응답 : {}", create.commentId());
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(create);
   }
 
-  @PatchMapping(path = "/{commentId}", consumes = {MediaType.APPLICATION_JSON_VALUE})
+  @PatchMapping(path = "/{commentId}")
   public ResponseEntity<CommentDto> updateComment(
       @PathVariable("commentId") UUID commentId,
       @RequestHeader("Monew-Request-User-ID") UUID userId,
       @RequestBody @Valid CommentUpdateRequest commentUpdateRequest) {
+
     log.info("댓글 수정 요청 : {}", commentUpdateRequest);
 
     CommentDto update = commentService.updateComment(commentId, userId, commentUpdateRequest);
@@ -85,12 +87,14 @@ public class CommentController {
   public ResponseEntity<CursorPageResponseCommentDto> getAllComments(@RequestParam UUID articleId,
       @RequestParam CommentOrderBy orderBy,
       @RequestParam SortDirection direction,
-      @RequestParam String cursor,
-      @RequestParam @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime after,
-      @RequestParam int limit,
+      @RequestParam (defaultValue = "") String cursor,
+      @RequestParam (required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime after,
+      @RequestParam (defaultValue = "50") int limit,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
 
+    log.info("댓글 목록 조회 test : {}", requestUserId);
     CursorPageResponseCommentDto responseCommentDto= commentService.getComments(articleId, orderBy, direction, cursor, after, limit, requestUserId);
+    log.info("댓글 목록 조회 test 종료 : {}", responseCommentDto);
 
     return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
   }
@@ -98,9 +102,11 @@ public class CommentController {
   @PostMapping(path = "/{commentId}/comment-likes")
   public ResponseEntity<CommentLikeDto> commentLike(@PathVariable("commentId") UUID commentId,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
+    log.info("댓글 좋아요 등록 요청 : {}", commentId);
 
     CommentLikeDto commentLikeDto = commentService.commentLike(commentId, requestUserId);
 
+    log.info("댓글 좋아요 등록 요청 완료 : {}", commentLikeDto);
     return ResponseEntity.status(HttpStatus.OK).body(commentLikeDto);
   }
 
