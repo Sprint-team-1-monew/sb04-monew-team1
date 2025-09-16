@@ -44,7 +44,7 @@ public class CommentController {
 
     CommentDto create = commentService.createComment(commentRegisterRequest);
 
-    log.debug("댓글 등록 응답 : {}", create.commentId());
+    log.debug("댓글 등록 응답 : {}", create.id());
     return ResponseEntity
         .status(HttpStatus.CREATED)
         .body(create);
