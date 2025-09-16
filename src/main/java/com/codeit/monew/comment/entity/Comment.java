@@ -5,12 +5,10 @@ import com.codeit.monew.base.entity.BaseEntity;
 import com.codeit.monew.user.entity.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 import java.time.LocalDateTime;
-import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -22,11 +20,12 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "comments")
 @Getter
 @SuperBuilder
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@NoArgsConstructor()
 @AllArgsConstructor()
 public class Comment extends BaseEntity {
 
   @Column(name = "content", nullable = false)
+  @Setter
   private String content;
 
   @Builder.Default
@@ -46,12 +45,14 @@ public class Comment extends BaseEntity {
   @Setter
   private LocalDateTime deletedAt;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne()
   @JoinColumn(name = "user_id", nullable = false)
+  @Setter
   private User user;
 
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne()
   @JoinColumn(name = "article_id", nullable = false)
+  @Setter
   private Article article;
 
   public void updateContent(String content) {

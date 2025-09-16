@@ -1,15 +1,13 @@
-package com.codeit.monew.comment.repository;
+package com.codeit.monew.comment.repository.likeRepository;
 
 import com.codeit.monew.comment.entity.QCommentLike;
 import com.querydsl.jpa.impl.JPADeleteClause;
 import jakarta.persistence.EntityManager;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
-@Repository
 @RequiredArgsConstructor
-public class CommentLikeQuerydslRepository {
+public class CommentLikeQuerydslRepositoryImpl implements CommentLikeQuerydslRepositoryCustom {
   private final EntityManager em;
 
   public long deleteByCommentId(UUID commentId) {
