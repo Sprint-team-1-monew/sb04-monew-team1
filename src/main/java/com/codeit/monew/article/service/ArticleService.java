@@ -127,7 +127,7 @@ public class ArticleService {
       article, user.getId(), viewUser.getCreatedAt()
     );
 
-    updateArticleViewAndCommentCount(article);
+    updateArticleView(article);
 
     log.info("기사 뷰 DTO 조회 완료 - articleId={}, requestUserId={}, viewedAt={}",
         articleId, requestUserId, viewUser.getCreatedAt());
@@ -182,11 +182,9 @@ public class ArticleService {
     return user;
   }
 
-  private void updateArticleViewAndCommentCount(Article article){
+  private void updateArticleView(Article article){
     int articleViewCount = articleViewUserRepository.countByArticle(article);
-    int articleCommentCount = commentRepository.countByArticle(article);
     article.setArticleViewCount(articleViewCount);
-    article.setArticleCommentCount(articleCommentCount);
     articleRepository.save(article);
   }
 }
