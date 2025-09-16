@@ -4,11 +4,11 @@
   "requiresCompatibilities": ["EC2"],
   "cpu": "256",
   "memory": "512",
-  "executionRoleArn": "arn:aws:iam::<YOUR_ACCOUNT_ID>:role/ecsTaskExecutionRole",
+  "executionRoleArn": "arn:aws:iam::698251583389:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
       "name": "monew-app",
-      "image": "public.ecr.aws/w7n1o6b8/monew:PLACEHOLDER",
+      "image": "public.ecr.aws/w7n1o6b8/monew:latest",
       "essential": true,
       "cpu": 256,
       "memory": 512,
