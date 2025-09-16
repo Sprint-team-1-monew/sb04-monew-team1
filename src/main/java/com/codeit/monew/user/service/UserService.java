@@ -16,9 +16,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @Transactional
 @RequiredArgsConstructor
@@ -41,7 +43,10 @@ public class UserService {
 
   public UserDto updateUser(UUID userId, UserUpdateRequest userUpdateRequest) {
     User user = userRepository.findById(userId)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+        .orElseThrow(() -> {
+          log.warn("존재하지 않는 사용자 {}", userId);
+          return new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+        });
 
     Optional.ofNullable(userUpdateRequest.nickname()).ifPresent(user::updateNickname);
     return userMapper.toDto(userRepository.save(user));
@@ -49,7 +54,10 @@ public class UserService {
 
   public UserDto login(UserLoginRequest userLoginRequest) {
     User user = userRepository.findByEmail(userLoginRequest.email())
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_LOGIN_FAILED, Map.of("email", userLoginRequest.email())));
+        .orElseThrow(() -> {
+          log.warn("존재하지 않는 사용자 {}", userLoginRequest.email());
+          return new UserException(UserErrorCode.USER_LOGIN_FAILED, Map.of("email", userLoginRequest.email()));
+        });
 
     String loginPassword = userLoginRequest.password();
 
@@ -62,6 +70,7 @@ public class UserService {
 
   private void validateEmailDoesNotExist(String email) {
     if (userRepository.existsByEmail(email)) {
+      log.warn("중복된 이메일 {}", email);
       throw new UserException(UserErrorCode.USER_EMAIL_DUPLICATED, Map.of("email", email));
     }
   }
@@ -72,7 +81,10 @@ public class UserService {
 
   public void softDelete(UUID userId) {
     User softDeletedUser = userRepository.findById(userId)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+        .orElseThrow(() -> {
+          log.warn("존재하지 않는 사용자 {}", userId);
+          return new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+        });
 
     if(isUserStatusDeleted(softDeletedUser.getUserStatus())) {  // 이미 논리 삭제 된 경우 논리 삭제 시간 갱신 방지
       return;
@@ -90,7 +102,10 @@ public class UserService {
 
   public void hardDelete(UUID userId) {
     User hardDeletedUser = userRepository.findById(userId)
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId)));
+        .orElseThrow(() -> {
+          log.warn("존재하지 않는 사용자 {}", userId);
+          return new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", userId));
+        });
 
     if(!isUserStatusDeleted(hardDeletedUser.getUserStatus())) {
       throw new UserException(UserErrorCode.USER_NOT_DELETABLE, Map.of("userId", userId));
