@@ -13,9 +13,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Repository;
 
-@Repository
 @RequiredArgsConstructor
 public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
 
@@ -34,7 +32,7 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
     BooleanBuilder where = new BooleanBuilder();
     where.and(comment.article.id.eq(articleId));
 
-    if(cursor != null & after != null) {
+    if(after != null) {
       if(direction == SortDirection.ASC) {
         where.and(comment.createdAt.gt(after));
       } else{
@@ -42,12 +40,18 @@ public class CommentRepositoryCustomImpl implements CommentRepositoryCustom {
       }
     }
 
-    OrderSpecifier<LocalDateTime> orderSpecifier =
-        direction == SortDirection.ASC ?
-                  comment.createdAt.asc() : comment.createdAt.desc();
+    // 정렬 조건
+    OrderSpecifier<?> orderSpecifier;
+    if (orderBy == CommentOrderBy.likeCount) {
+      orderSpecifier = direction == SortDirection.ASC ? comment.likeCount.asc() : comment.likeCount.desc();
+    } else {
+      orderSpecifier = direction == SortDirection.ASC ? comment.createdAt.asc() : comment.createdAt.desc();
+    }
 
     return queryFactory
         .selectFrom(comment)
+        .leftJoin(comment.user).fetchJoin()
+        .leftJoin(comment.article).fetchJoin()
         .where(where)
         .orderBy(orderSpecifier)
         .limit(limit)

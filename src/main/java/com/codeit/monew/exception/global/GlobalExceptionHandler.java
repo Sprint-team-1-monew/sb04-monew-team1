@@ -2,7 +2,6 @@ package com.codeit.monew.exception.global;
 
 import com.codeit.monew.exception.article.ArticleException;
 import com.codeit.monew.exception.example.ExampleException;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,8 +49,8 @@ public class GlobalExceptionHandler {
 
   }
 
-  @ExceptionHandler(RuntimeException.class)
-  public ResponseEntity<?> handleUnexpectedError(RuntimeException ex) {
-    return ResponseEntity.internalServerError().body(Map.of("error", "예상치 못한 오류가 발생했습니다."));
-  }
+//  @ExceptionHandler(RuntimeException.class)
+//  public ResponseEntity<?> handleUnexpectedError(RuntimeException ex) {
+//    return ResponseEntity.internalServerError().body(Map.of("error", "예상치 못한 오류가 발생했습니다."));
+//  }
 }
