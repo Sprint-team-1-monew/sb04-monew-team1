@@ -4,7 +4,6 @@ package com.codeit.monew.article.batch;
 import com.codeit.monew.article.naver.NaverNewsCollector;
 import com.codeit.monew.article.rss.ChoSunCollector;
 import com.codeit.monew.article.rss.HankyungCollector;
-import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -80,19 +79,13 @@ public class ArticleCleanUpTasklet implements Tasklet {
         allNaverArticleCounts, allChoSunArticleCounts, allHanKyungArticleCounts);
 
 
-    Counter.builder("article.collect.count")
-        .tag("source", "NAVER")
-        .register(meterRegistry)
+    meterRegistry.counter("article.collect.count", "source", "NAVER")
         .increment(newNaverArticleCounts);
 
-    Counter.builder("article.collect.count")
-        .tag("source", "CHOSUN")
-        .register(meterRegistry)
+    meterRegistry.counter("article.collect.count", "source", "CHOSUN")
         .increment(newChoSunArticleCounts);
 
-    Counter.builder("article.collect.count")
-        .tag("source", "HANKYUNG")
-        .register(meterRegistry)
+    meterRegistry.counter("article.collect.count", "source", "HANKYUNG")
         .increment(newHanKyungArticleCounts);
 
     contribution.setExitStatus(ExitStatus.COMPLETED);

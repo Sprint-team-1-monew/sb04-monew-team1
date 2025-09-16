@@ -175,6 +175,6 @@ public class HankyungCollector {
 
   @Transactional(readOnly = true)
   public int getAllHanKyungArticlesCount() {
-    return articleRepository.countBySource("HanKyung  ");
+    return articleRepository.countBySource("HanKyung");
   }
 }

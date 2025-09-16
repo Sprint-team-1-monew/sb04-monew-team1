@@ -39,6 +39,7 @@ public class ArticleColletorTest {
   @Test
   @DisplayName("조선 일보 테스트")
   void chosun_collector_test() throws Exception {
+    // given
     ChoSunCollector collector = new ChoSunCollector(
         null, articleRepository, interestRepository, keywordRepository);
 
@@ -55,6 +56,7 @@ public class ArticleColletorTest {
     when(articleRepository.save(any(Article.class)))
         .thenAnswer(inv -> inv.getArgument(0));
 
+    //when
     try (MockedStatic<ChoSunCollector> mocked = mockStatic(ChoSunCollector.class)) {
       mocked.when(ChoSunCollector::getAllRss).thenReturn(List.of(item));
       mocked.when(() -> ChoSunCollector.getArticleSummary(item.link()))
@@ -62,7 +64,7 @@ public class ArticleColletorTest {
 
       when(articleRepository.findBySourceUrl(item.link())).thenReturn(Optional.empty());
 
-      collector.chousunArticleFetchAndSaveHourly();
+      collector.chousunArticleCollect();
 
       verify(articleRepository, times(1)).save(argThat(article ->
           article.getSource().equals("ChoSun") &&
@@ -101,7 +103,7 @@ public class ArticleColletorTest {
           .thenReturn("바다"); // 관심사 미포함
 
       // when
-      collector.chousunArticleFetchAndSaveHourly();
+      collector.chousunArticleCollect();
 
       // then
       verify(articleRepository, never()).save(any(Article.class));
@@ -135,7 +137,7 @@ public class ArticleColletorTest {
         .thenAnswer(inv -> inv.getArgument(0));
 
     // when
-    spyCollector.hankyungArticleFetchAndSaveHourly();
+    spyCollector.hankyungArticleCollect();
 
     // then — 호출 횟수만 검증(인자 무시)
     verify(articleRepository, times(1)).save(any(Article.class));
