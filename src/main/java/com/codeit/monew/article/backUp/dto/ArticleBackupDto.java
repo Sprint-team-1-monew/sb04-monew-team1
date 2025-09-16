@@ -16,9 +16,10 @@ public record ArticleBackupDto(
         String interestId // 복구할 때 필요함, 관심사 ID를 가져옴
 ) {
     public static ArticleBackupDto from(Article article) {
-        String interestIdStr = (article.getInterest() != null && article.getInterest().getId() != null) // Interest가 Lazy해도 ID접근을 프록시로 가능하게끔
-                ? article.getInterest().getId().toString()
-                : null;
+//        String interestIdStr = (article.getInterest() != null && article.getInterest().getId() != null) // Interest가 Lazy해도 ID접근을 프록시로 가능하게끔
+//                ? article.getInterest().getId().toString()
+//                : null;
+        String interestIdStr = article.getInterest().getId().toString();
 
         return new ArticleBackupDto(
                 article.getSource(),
@@ -29,7 +30,7 @@ public record ArticleBackupDto(
                 article.getArticleCommentCount(),
                 article.getArticleViewCount(),
                 article.isDeleted(),
-                interestIdStr
+                interestIdStr // null일 수 있음
         );
     }
 }
