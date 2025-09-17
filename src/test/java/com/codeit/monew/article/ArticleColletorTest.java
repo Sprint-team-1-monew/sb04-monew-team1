@@ -137,7 +137,7 @@ public class ArticleColletorTest {
         .thenAnswer(inv -> inv.getArgument(0));
 
     // when
-    spyCollector.hankyungArticleCollect();
+    spyCollector.hanKyungArticleCollect();
 
     // then — 호출 횟수만 검증(인자 무시)
     verify(articleRepository, times(1)).save(any(Article.class));

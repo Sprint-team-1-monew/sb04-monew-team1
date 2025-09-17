@@ -53,7 +53,7 @@ public class ArticleCleanUpTasklet implements Tasklet {
       newNaverArticleCounts = naverCounts.values()
           .stream()
           .mapToInt(Integer::intValue)
-          .sum();;
+          .sum();
     } catch (Exception e) {
       log.error("네이버 기사 수집 실패", e);
     }
@@ -63,7 +63,7 @@ public class ArticleCleanUpTasklet implements Tasklet {
       newChoSunArticleCounts = choSunCounts.values()
           .stream()
           .mapToInt(Integer::intValue)
-          .sum();;
+          .sum();
     } catch (Exception e) {
       log.error("조선 기사 수집 실패", e);
     }

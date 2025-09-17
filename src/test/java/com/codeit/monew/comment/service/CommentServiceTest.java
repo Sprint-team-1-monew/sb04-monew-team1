@@ -39,6 +39,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 @ExtendWith(MockitoExtension.class)
 public class CommentServiceTest {
@@ -60,6 +61,9 @@ public class CommentServiceTest {
 
   @Mock
   private ArticleRepository articleRepository;
+
+  @Mock
+  private ApplicationEventPublisher publisher;
 
   private UUID userId;
   private UUID articleId;
