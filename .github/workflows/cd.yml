@@ -73,4 +73,4 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -d "{\"name\": \"CD: ${{ steps.get_ci_name.outputs.ci_name }}\"}""
+            -d '{"name": "CD: '"$PR_TITLE"'"}'
