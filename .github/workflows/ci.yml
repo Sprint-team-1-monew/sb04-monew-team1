@@ -62,7 +62,7 @@ jobs:
 
       - name: Trigger CD workflow
         run: |
-          gh workflow run CD.yml \
+          gh workflow run cd.yml \
             --ref ${{ github.ref_name }} \
             -f pr_title="${{ steps.pr_check.outputs.pr_title }}"
         env:
