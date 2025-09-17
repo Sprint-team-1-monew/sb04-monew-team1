@@ -3,7 +3,7 @@ package com.codeit.monew.comment.response_dto;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-public record CommentDto (
+public record CommentDto(
     UUID id,
     UUID articleId,
     UUID userId,
@@ -12,5 +12,6 @@ public record CommentDto (
     Long likeCount,
     Boolean likedByMe,
     LocalDateTime createdAt
-){
+) {
+
 }

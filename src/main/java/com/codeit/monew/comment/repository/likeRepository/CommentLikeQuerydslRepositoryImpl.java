@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
 public class CommentLikeQuerydslRepositoryImpl implements CommentLikeQuerydslRepositoryCustom {
+
   private final EntityManager em;
 
   public long deleteByCommentId(UUID commentId) {

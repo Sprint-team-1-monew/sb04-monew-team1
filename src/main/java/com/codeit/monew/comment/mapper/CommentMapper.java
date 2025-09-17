@@ -19,10 +19,9 @@ public interface CommentMapper {
   @Mapping(target = "likeCount", ignore = true)
   Comment toCommentEntity(CommentRegisterRequest commentRegisterRequest);
 
-  @Mapping(target = "articleId",     source = "comment.article.id")
-  @Mapping(target = "userId",        source = "comment.user.id")
-  @Mapping(target = "userNickname",  source = "comment.user.nickname")
-  @Mapping(target = "likedByMe",     source = "likedByMe")
+  @Mapping(target = "articleId", source = "comment.article.id")
+  @Mapping(target = "userId", source = "comment.user.id")
+  @Mapping(target = "userNickname", source = "comment.user.nickname")
+  @Mapping(target = "likedByMe", source = "likedByMe")
   CommentDto toCommentDto(Comment comment, boolean likedByMe);
-  }
-
+}

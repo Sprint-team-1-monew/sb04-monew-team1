@@ -55,18 +55,19 @@ public class CommentService {
     Comment commentEntity = commentMapper.toCommentEntity(commentRegisterRequest);
 
     User user = userRepository.findById(commentRegisterRequest.userId())
-        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND, Map.of("userId", commentRegisterRequest.userId())));
+        .orElseThrow(() -> new UserException(UserErrorCode.USER_NOT_FOUND,
+            Map.of("userId", commentRegisterRequest.userId())));
 
     Article article = articleRepository.findById(commentRegisterRequest.articleId())
-        .orElseThrow(() -> new ArticleNotFoundException(Map.of("articleId", commentRegisterRequest.articleId())));
+        .orElseThrow(() -> new ArticleNotFoundException(
+            Map.of("articleId", commentRegisterRequest.articleId())));
 
     commentEntity.setUser(user);
     commentEntity.setArticle(article);
 
     Comment saved = commentRepository.save(commentEntity);
 
-
-    CommentDto dto = commentMapper.toCommentDto(saved,false);
+    CommentDto dto = commentMapper.toCommentDto(saved, false);
     log.info("CommentDto 반환 전 : {}", dto); // <- 이걸 추가
     //응답 DTO 변환
 //    return commentMapper.toCommentDto(saved);
@@ -118,7 +119,7 @@ public class CommentService {
     log.info("댓글 물리 삭제 시작 : {}", commentId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
-            Map.of( "commentId", commentId)));
+            Map.of("commentId", commentId)));
 
     commentLikeQuerydslRepositoryCustom.deleteByCommentId(commentId);
 
@@ -134,7 +135,6 @@ public class CommentService {
       int limit,
       UUID requestUserId) {
 
-
     log.info(
         "댓글 목록 조회 시작 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
         articleId, orderBy, direction, cursor, after, limit, requestUserId);
@@ -148,25 +148,24 @@ public class CommentService {
     List<Comment> comments = commentRepository.findComments(articleId, orderBy, direction,
         cursor, effectiveAfter, limit);
 
-
     List<CommentDto> contents = comments.stream()
         .filter(comment -> !comment.getIsDeleted())
-        .map( comment -> {
+        .map(comment -> {
           boolean liked = commentLikeRepository.existsByCommentIdAndUserId(comment.getId(),
               requestUserId);
           return commentMapper.toCommentDto(comment, liked);
         })
         .toList();
 
-
-    log.info("댓글 목록 조회 완료 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
+    log.info(
+        "댓글 목록 조회 완료 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
         articleId, orderBy, direction, cursor, after, limit, requestUserId);
 
     String nextCursor = null;
     LocalDateTime nextAfter = null;
     Integer size = contents.size();
     Long totalElements = commentRepository.countByArticleId(articleId);
-    Boolean hasNext = comments.size() == limit+1;
+    Boolean hasNext = comments.size() == limit + 1;
 
     if (hasNext) {
       nextAfter = comments.get(limit).getCreatedAt();
