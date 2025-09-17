@@ -1,4 +1,5 @@
 name: CD
+run-name: ${{ github.event.workflow_run.name }}
 
 on:
   workflow_run:
