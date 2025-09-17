@@ -31,6 +31,16 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/settings.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
       - name: AWS Configure
         uses: aws-actions/configure-aws-credentials@v4
         with:
