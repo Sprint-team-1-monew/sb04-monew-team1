@@ -57,17 +57,20 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  rename_workflow:
+  rename-and-deploy:
     runs-on: ubuntu-latest
-    needs: deploy
     steps:
-      - name: Rename CD workflow using CI PR title
+      - name: Get CI workflow name
+        id: get_ci_name
         run: |
-          PR_TITLE="${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.pull_requests != '' && needs.build-and-push.outputs.pr_title || 'Unknown PR' }}"
-          echo "Renaming workflow to: CD: $PR_TITLE"
-          
+          CI_NAME="${{ github.event.workflow_run.name }}"
+          echo "ci_name=$CI_NAME" >> $GITHUB_OUTPUT
+
+      - name: Rename CD workflow
+        run: |
+          echo "Renaming workflow to: CD: ${{ steps.get_ci_name.outputs.ci_name }}"
           curl -X PATCH \
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -d "{\"name\": \"CD: $PR_TITLE\"}"
+            -d "{\"name\": \"CD: ${{ steps.get_ci_name.outputs.ci_name }}\"}""
