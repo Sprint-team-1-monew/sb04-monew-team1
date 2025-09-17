@@ -10,6 +10,8 @@ jobs:
     env:
       AWS_REGION: ap-northeast-2
       IMAGE: public.ecr.aws/w7n1o6b8/monew
+    outputs:
+      pr_title: ${{ steps.pr_check.outputs.pr_title }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -60,17 +62,8 @@ jobs:
           -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
           --push .
 
-      - name: Trigger CD workflow
-        uses: actions/github-script@v7
-        with:
-          script: |
-            await github.rest.actions.createWorkflowDispatch({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: "cd.yml",
-              ref: context.ref,
-              inputs: {
-                pr_title: "${{ steps.pr_check.outputs.pr_title }}"
-              }
-            });
-
+  deploy:
+    needs: build-and-push
+    uses: ./.github/workflows/cd.yml
+    with:
+      pr_title: ${{ needs.build-and-push.outputs.pr_title }}
