@@ -1,0 +1,57 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [ "CI" ]
+    types:
+      - completed
+    branches: [dev, main]
+
+jobs:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    env:
+      ECS_CLUSTER: cluster-monew
+      ECS_SERVICE: monew-task-service-13fqphcy
+      ECS_TASK_FAMILY: monew-task
+      CONTAINER_NAME: monew-app
+      IMAGE: public.ecr.aws/w7n1o6b8/monew
+      AWS_REGION: ap-northeast-2
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AWS ECS Configure
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Stop running ECS tasks
+        run: |
+          CLUSTER="${{ env.ECS_CLUSTER }}"
+          SERVICE="${{ env.ECS_SERVICE }}"
+          TASKS=$(aws ecs list-tasks --cluster $CLUSTER --service-name $SERVICE --desired-status RUNNING --query 'taskArns' --output text)
+          if [ -n "$TASKS" ]; then
+            echo "Stopping running tasks: $TASKS"
+            aws ecs stop-task --cluster $CLUSTER --task $TASKS
+          else
+            echo "No running tasks found."
+          fi
+
+      - name: Task Definition file Rendering
+        id: render
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ecs/taskdef-base.json
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ env.IMAGE }}:latest
+
+      - name: ECS Deploy
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ecs/taskdef-base.json
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
