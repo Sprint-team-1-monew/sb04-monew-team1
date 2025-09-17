@@ -10,6 +10,8 @@ jobs:
     env:
       AWS_REGION: ap-northeast-2
       IMAGE: public.ecr.aws/w7n1o6b8/monew
+    outputs:
+      pr_title: ${{ steps.pr_check.outputs.pr_title }}  # CD에 전달할 PR 제목
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -20,9 +22,12 @@ jobs:
           PR_NUMBER=$(gh pr list --state merged --base dev --json number,mergeCommit --jq ".[] | select(.mergeCommit.oid==\"$GITHUB_SHA\") | .number")
           if [ -z "$PR_NUMBER" ]; then
             echo "Not a PR merge commit. Ending workflow successfully."
-            exit 0   # <- 성공 처리 후 전체 종료
+            echo "::set-output name=pr_title::Unknown PR"
+            exit 0
           else
-            echo "PR #$PR_NUMBER merged. Continue CI."
+            PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq ".title")
+            echo "PR #$PR_NUMBER merged. Title: $PR_TITLE"
+            echo "::set-output name=pr_title::$PR_TITLE"
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -45,7 +50,7 @@ jobs:
       - name: Set up Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: tag making(SHA)
+      - name: Tag making (SHA)
         id: shatag
         run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
@@ -56,3 +61,11 @@ jobs:
           -t $IMAGE:latest \
           -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
           --push .
+
+      - name: Trigger CD workflow
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: CD.yml
+          ref: dev
+          inputs:
+            pr_title: "${{ steps.pr_check.outputs.pr_title }}"
