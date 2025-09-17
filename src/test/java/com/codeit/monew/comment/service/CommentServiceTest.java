@@ -223,6 +223,47 @@ public class CommentServiceTest {
   }
 
   @Test
+  @DisplayName("댓글 수정 실패 - 댓글이 존재하지 않음")
+  void commentUpdate_Fail_CommentNotFound() {
+    //given
+    CommentUpdateRequest updateRequest = new CommentUpdateRequest("수정된 내용");
+
+    //commentRepository.findById() 호출 했을 때 Optional.empty() 반환
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    //when & then 예외 발생해야함
+    assertThrows(CommentException.class, () -> commentService.updateComment(commentId, userId, updateRequest));
+
+  }
+
+  @Test
+  @DisplayName("댓글 수정 실패 - 댓글 작성자가 아님")
+  void commentUpdate_Fail_IdentityVerification() {
+    //given
+    UUID realAuthorId = UUID.randomUUID();
+    UUID requestId = UUID.randomUUID();
+
+    CommentUpdateRequest updateRequest = new CommentUpdateRequest("수정된 내용");
+
+    //댓글 엔티티를 가짜로 생성 (작성자는 realAuthorId)
+    Comment comment = Comment.builder()
+        .content(commentRegisterRequest.content())
+        .isDeleted(false)
+        .likeCount(0)
+        .user(User.builder().id(realAuthorId).build())
+        .article(Article.builder().build())
+        .build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+    //when & then 작성자가 아니므로 예외 발생해야함
+    CommentException exception = assertThrows(CommentException.class, () -> commentService.updateComment(commentId, requestId, updateRequest));
+
+    assertEquals(CommentErrorCode.IDENTITY_VERIFICATION_EXCEPTION, exception.getErrorCode());
+
+  }
+
+  @Test
   @DisplayName("댓글 논리 삭제 성공")
   void softDelete_Success() {
 
