@@ -11,11 +11,13 @@ import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
@@ -370,33 +372,45 @@ public class CommentServiceTest {
         .articleTitle("테스트 기사")
         .build();
 
-    Comment mappedEntity = Comment.builder()
+    Comment comment1 = Comment.builder()
         .id(UUID.randomUUID())
-        .content("테스트 댓글")
+        .content("테스트 댓글 1")
+        .createdAt(LocalDateTime.now().minusMinutes(1))
+        .isDeleted(false) // 삭제되지 않은 댓글
+        .user(dummyUser)
+        .article(dummyArticle)
+        .build();
+
+    Comment comment2 = Comment.builder()
+        .id(UUID.randomUUID())
+        .content("테스트 댓글 2")
         .createdAt(LocalDateTime.now())
+        .isDeleted(true) // 삭제된 댓글 → filter 커버
         .user(dummyUser)
         .article(dummyArticle)
         .build();
 
     CommentDto dummyDto = new CommentDto(
-        mappedEntity.getId(),               // UUID id
-        mappedEntity.getArticle().getId(),  // UUID articleId
-        mappedEntity.getUser().getId(),     // UUID userId
-        mappedEntity.getUser().getNickname(), // String userNickname
-        mappedEntity.getContent(),          // String content
+        comment1.getId(),               // UUID id
+        comment1.getArticle().getId(),  // UUID articleId
+        comment1.getUser().getId(),     // UUID userId
+        comment1.getUser().getNickname(), // String userNickname
+        comment1.getContent(),          // String content
         0L,                                 // Long likeCount
         false,                               // Boolean likedByMe
-        mappedEntity.getCreatedAt()         // LocalDateTime createdAt
+        comment1.getCreatedAt()         // LocalDateTime createdAt
     );
 
+    List<Comment> commentList = List.of(comment1, comment2);
+
     given(commentRepository.findComments(
-        any(UUID.class),
-        any(CommentOrderBy.class),
-        any(SortDirection.class),
-        anyString(),
-        any(LocalDateTime.class),
-        anyInt()
-    )).willReturn(List.of(mappedEntity));
+        eq(articleId),
+        eq(CommentOrderBy.createdAt),
+        eq(SortDirection.DESC),
+        eq(""),
+        isNull(),
+        eq(1)
+    )).willReturn(commentList);
 
     given(commentMapper.toCommentDto(any(Comment.class), anyBoolean()))
         .willReturn(dummyDto);
@@ -405,19 +419,20 @@ public class CommentServiceTest {
     CursorPageResponseCommentDto result = commentService.getComments(articleId,
         CommentOrderBy.createdAt,
         SortDirection.DESC,
-        "cursor-value",
-        LocalDateTime.now(),
-        10,
+        "",
+        null,
+        1,
         requestUserId
     );
 
     //then
     assertThat(result).isNotNull();
-    assertThat(result.content()).hasSize(1);
-    assertThat(result.content().get(0).content()).isEqualTo("테스트 댓글");
+    assertThat(result.content()).hasSize(1); // 삭제되지 않은 댓글만 포함
+    assertThat(result.content().get(0).content()).isEqualTo("테스트 댓글 1");
     assertThat(result.content().get(0).articleId()).isEqualTo(articleId);
-    assertThat(result.hasNext()).isFalse();
-
+    assertThat(result.hasNext()).isTrue();       // [추가] hasNext 조건
+    assertThat(result.nextCursor()).isNotNull(); // [추가] nextCursor 존재 확인
+    assertThat(result.nextAfter()).isNotNull();  // [추가] nextAfter 존재 확인
   }
 
   @Test
@@ -467,6 +482,7 @@ public class CommentServiceTest {
   @DisplayName("댓글 좋아요 성공")
   void CommentLike_Success() {
 
+    //given
     Article article = Article.builder()
         .id(UUID.randomUUID())
         .articleTitle("테스트 글")
@@ -485,7 +501,6 @@ public class CommentServiceTest {
         .likeCount(0)
         .build();
 
-    //given
     given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
     given(userRepository.findById(userId)).willReturn(Optional.of(user));
 
@@ -495,6 +510,79 @@ public class CommentServiceTest {
     //then
     assertThat(comment.getLikeCount()).isEqualTo(1);
     then(commentLikeRepository).should(times(1)).save(any(CommentLike.class));
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 실패 - 댓글이 존재하지 않음")
+  void commentLike_Fail_CommentNotFound() {
+    //given
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // commentRepository.findById 호출 시 빈 Optional 반환 → 댓글 없음
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    // 실행 시 CommentException 발생 확인
+    CommentException exception = assertThrows(CommentException.class,
+        () -> commentService.commentLike(commentId, requestUserId));
+
+    assertEquals(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, exception.getErrorCode());
+
+    // Repository 호출 검증
+    verify(commentRepository, times(1)).findById(commentId);
+    verifyNoMoreInteractions(commentRepository);
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 실패 - 사용자가 존재하지 않음")
+  void commentLike_Fail_UserNotFound() {
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // 댓글 존재
+    Comment comment = Comment.builder().id(commentId).likeCount(0).build();
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+
+    // userRepository.findById 호출 시 빈 Optional 반환 → 사용자 없음
+    given(userRepository.findById(requestUserId)).willReturn(Optional.empty());
+
+    // 실행 시 UserException 발생 확인
+    UserException exception = assertThrows(UserException.class,
+        () -> commentService.commentLike(commentId, requestUserId));
+
+    assertEquals(UserErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+
+    verify(commentRepository, times(1)).findById(commentId);
+    verify(userRepository, times(1)).findById(requestUserId);
+    verifyNoMoreInteractions(commentRepository, userRepository);
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 실패 - 이미 좋아요 눌림")
+  void commentLike_Fail_DuplicateLikes() {
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // 댓글과 사용자 존재
+    Comment comment = Comment.builder().id(commentId).likeCount(0).build();
+    User user = User.builder().id(requestUserId).build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(requestUserId)).willReturn(Optional.of(user));
+
+    // 이미 좋아요 눌린 경우 true 반환
+    given(commentLikeRepository.existsByCommentIdAndUserId(commentId, requestUserId)).willReturn(true);
+
+    // 실행 시 CommentException 발생 확인
+    CommentException exception = assertThrows(CommentException.class,
+        () -> commentService.commentLike(commentId, requestUserId));
+
+    assertEquals(CommentErrorCode.DUPLICATE_LIKES, exception.getErrorCode());
+
+    verify(commentRepository, times(1)).findById(commentId);
+    verify(userRepository, times(1)).findById(requestUserId);
+    verify(commentLikeRepository, times(1)).existsByCommentIdAndUserId(commentId, requestUserId);
+    verifyNoMoreInteractions(commentRepository, userRepository, commentLikeRepository);
   }
 
   @Test
