@@ -76,8 +76,6 @@ dependencies {
 
     implementation 'com.fasterxml.jackson.core:jackson-databind' // Jackson
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310' // Jackson
-
-    implementation 'org.springframework.boot:spring-boot-starter-logging' // 로깅
 }
 
 tasks.named('test') {
