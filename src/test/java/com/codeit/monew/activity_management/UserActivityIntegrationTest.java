@@ -8,8 +8,10 @@ import com.codeit.monew.activity_management.response_dto.UserActivityDto;
 import com.codeit.monew.activity_management.response_dto.UserArticleViewDto;
 import com.codeit.monew.activity_management.response_dto.UserSubscriptionDto;
 import com.codeit.monew.activity_management.service.UserActivityService;
+import com.codeit.monew.user.exception.UserException;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,5 +170,26 @@ public class UserActivityIntegrationTest {
     assertThat(thirdView.articleViewCount()).isEqualTo(120);
   }
 
+  @Test
+  @DisplayName("존재하지 않는 사용자의 활동내역 조회 시 실패한다")
+  void getUserActivity_Fail_WhenUserNotFound() {
+    //given
+    UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440010");
+
+    // when & then
+    Assertions.assertThatThrownBy(() -> userActivityService.getUserActivity(userId))
+        .isInstanceOf(UserException.class);
+  }
+
+  @Test
+  @DisplayName("논리 삭제 상태의 사용자 조회 시도 시 실패한다")
+  void getUserActivity_Fail_WhenUserNotDeleted() {
+    //given
+    UUID userId = UUID.fromString("550e8400-e29b-41d4-a716-446655440003");
+
+    // when & then
+    Assertions.assertThatThrownBy(() -> userActivityService.getUserActivity(userId))
+        .isInstanceOf(UserException.class);
+  }
 
 }
