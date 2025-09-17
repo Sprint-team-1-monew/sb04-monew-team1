@@ -1,9 +1,8 @@
 name: CI
 
 on:
-  pull_request:
+  push:
     branches: [dev, main]
-    types: [closed]
 
 jobs:
   build-and-push:
@@ -15,6 +14,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Check if commit belongs to merged PR
+        id: pr_check
+        run: |
+          gh pr list --state merged --base dev --json number,mergeCommit --jq ".[] | select(.mergeCommit.oid==\"$GITHUB_SHA\") | .number" > pr_number.txt || true
+          PR_NUMBER=$(cat pr_number.txt)
+          if [ -z "$PR_NUMBER" ]; then
+            echo "Not a PR merge commit. Skipping CI."
+            exit 78
+          else
+            echo "PR #$PR_NUMBER merged. Continue CI."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: AWS Configure
         uses: aws-actions/configure-aws-credentials@v4
