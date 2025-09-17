@@ -28,9 +28,13 @@ import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
 import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
+import com.codeit.monew.exception.article.ArticleErrorCode;
+import com.codeit.monew.exception.article.ArticleException;
 import com.codeit.monew.exception.comment.CommentErrorCode;
 import com.codeit.monew.exception.comment.CommentException;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.exception.UserErrorCode;
+import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -134,6 +138,41 @@ public class CommentServiceTest {
     then(commentMapper).should().toCommentEntity(commentRegisterRequest);
     then(commentRepository).should().save(mappedEntity);
     then(commentMapper).should().toCommentDto(savedEntity, expectedDto.likedByMe());
+  }
+
+  @Test
+  @DisplayName("댓글 등록 실패 - 유저가 존재하지 않을 때")
+  void createComment_Fail_UserNotFound() {
+    //given
+    given(userRepository.findById(commentRegisterRequest.userId())).willReturn(Optional.empty()); // 무조건 empty 반환
+
+    //when & then
+    UserException exception = assertThrows(UserException.class, () -> commentService.createComment(commentRegisterRequest));
+
+    assertEquals(UserErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+
+    // 검증 : articleRepository 와 commentRepository 는 호출되지 않아야 한다.
+    verify(articleRepository, never()).findById(any());
+    verify(commentRepository, never()).save(any());
+
+  }
+
+  @Test
+  @DisplayName(("댓글 등록 실패 - 기사가 존재하지 않을 때"))
+  void createComment_Fail_ArticleNotFound() {
+    //given
+    User mockUser = User.builder()
+        .id(userId)
+        .build();
+
+    given(userRepository.findById(any(UUID.class))).willReturn(Optional.of(mockUser));
+    given(articleRepository.findById(any(UUID.class))).willReturn(Optional.empty());
+
+    ArticleException exception = assertThrows(ArticleException.class, () -> commentService.createComment(commentRegisterRequest));
+
+    assertEquals(ArticleErrorCode.ARTICLE_NOT_FOUND_EXCEPTION, exception.getErrorCode());
+
+    verify(commentRepository, never()).findById(any());
   }
 
   @Test
