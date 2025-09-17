@@ -87,7 +87,7 @@ public class CommentController {
   public ResponseEntity<CursorPageResponseCommentDto> getAllComments(@RequestParam UUID articleId,
       @RequestParam CommentOrderBy orderBy,
       @RequestParam SortDirection direction,
-      @RequestParam (defaultValue = "") String cursor,
+      @RequestParam (required = false) String cursor,
       @RequestParam (required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime after,
       @RequestParam (defaultValue = "50") int limit,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
