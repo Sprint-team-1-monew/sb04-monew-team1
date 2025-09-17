@@ -130,7 +130,6 @@ public class CommentService {
       int limit,
       UUID requestUserId) {
 
-    limit = 50;
 
     log.info(
         "댓글 목록 조회 시작 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
