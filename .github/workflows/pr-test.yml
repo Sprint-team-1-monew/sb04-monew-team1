@@ -2,8 +2,8 @@ name: PR Test
 
 on:
   pull_request:
-    branches: [dev, main]
-    paths-ignore: ["README.md", "**/*.md"]
+    branches: [ dev, main ]
+    paths-ignore: [ "README.md", "**/*.md" ]
 
 jobs:
   test:
@@ -24,8 +24,16 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Cache Gradle
-        uses: gradle/actions/setup-gradle@v3
+      # 🔹 Gradle 캐시
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/build.gradle', '**/settings.gradle') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
 
       - name: Run tests with coverage
         run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --no-daemon
@@ -36,8 +44,12 @@ jobs:
           name: jacoco-report
           path: build/reports/jacoco/test/html
 
-      - name: Install xmllint
-        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+      # 🔹 xmllint 설치 (조건부)
+      - name: Install xmllint if missing
+        run: |
+          if ! command -v xmllint >/dev/null; then
+          sudo apt-get update && sudo apt-get install -y libxml2-utils
+          fi
 
       - name: Extract coverage numbers
         id: coverage
