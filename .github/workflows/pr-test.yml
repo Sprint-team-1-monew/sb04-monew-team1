@@ -1,0 +1,63 @@
+name: PR Test
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths-ignore: ["README.md", "**/*.md"]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Run tests with coverage
+        run: ./gradlew test jacocoTestReport jacocoTestCoverageVerification --no-daemon
+
+      - name: Upload coverage report (HTML)
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: build/reports/jacoco/test/html
+
+      - name: Install xmllint
+        run: sudo apt-get update && sudo apt-get install -y libxml2-utils
+
+      - name: Extract coverage numbers
+        id: coverage
+        run: |
+          XML="build/reports/jacoco/test/jacocoTestReport.xml"
+          COVERED=$(xmllint --xpath "string(//counter[@type='LINE']/@covered)" "$XML" 2>/dev/null || echo 0)
+          MISSED=$(xmllint --xpath "string(//counter[@type='LINE']/@missed)" "$XML" 2>/dev/null || echo 0)
+          TOTAL=$((COVERED + MISSED))
+          PCT=$(awk "BEGIN { if ($TOTAL==0) print 0; else printf \"%.2f\", ($COVERED/$TOTAL)*100 }")
+          echo "covered=$COVERED" >> $GITHUB_OUTPUT
+          echo "missed=$MISSED" >> $GITHUB_OUTPUT
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "pct=$PCT" >> $GITHUB_OUTPUT
+
+      - name: Post coverage comment PR
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: jacoco-coverage
+          message: |
+            ## JaCoCo Coverage Report
+            - **CoverageLine** ${{ steps.coverage.outputs.pct }}% (${{ steps.coverage.outputs.covered }} / ${{ steps.coverage.outputs.total }})
+            - **Missed** ${{ steps.coverage.outputs.missed }}
+            - [HTML Report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
