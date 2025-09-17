@@ -12,9 +12,12 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,17 +41,21 @@ public class ChoSunCollector {
   private final KeywordRepository keywordRepository;
 
   @Transactional
-  public int chousunArticleCollect() throws Exception {
+  public Map<UUID, Integer> chousunArticleCollect() throws Exception {
     log.info("조선일보 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     List<Interest> interests = interestRepository.findAll();
-    int collectedNewArticlesCount = 0;
+
+    // 관심사 ID별 기사 수 저장용
+    Map<UUID, Integer> interestIdAndArticlesSize = new HashMap<>();
 
     List<RssItem> rssItems = getAllRss();
+
     for (int i = rssItems.size() - 1; i >= 0; i--) {
       RssItem rssItem = rssItems.get(i);
       String summary = getArticleSummary(rssItem.link());
       Interest targetInterest = null;
 
+      // 관심사 매칭
       for (Interest interest : interests) {
         if (rssItem.title().contains(interest.getName())) {
           targetInterest = interest;
@@ -64,15 +71,24 @@ public class ChoSunCollector {
         continue;
       }
 
-      Article article = buildArticleFromHanKyungItem(rssItem, summary, targetInterest);
+      Article article = buildArticleFromChoSunItem(rssItem, summary, targetInterest);
+
+      // 중복 체크
       if (!isArticleDuplicated(article)) {
         Article savedArticle = articleRepository.save(article);
-        collectedNewArticlesCount++;
-        //log.info("기사 명: {}, 기사 요약: {}, 발매일: {}, 저장일: {}", savedArticle.getArticleTitle(), savedArticle.getArticleSummary(), savedArticle.getArticlePublishDate(), savedArticle.getCreatedAt());
+
+        // 저장된 기사 수 카운팅
+        UUID interestId = savedArticle.getInterest().getId();
+        interestIdAndArticlesSize.merge(interestId, 1, Integer::sum);
+
+        // 로그 필요 시
+        // log.info("저장된 기사: {}", savedArticle.getArticleTitle());
       }
     }
+
     log.info("조선일보 기사 수집 스케줄링 수집 종료: {}", LocalDateTime.now());
-    return collectedNewArticlesCount;
+    log.info("관심사별 저장 기사 수: {}", interestIdAndArticlesSize);
+    return interestIdAndArticlesSize;
   }
 
   private boolean isArticleDuplicated(Article article) {
@@ -153,7 +169,7 @@ public class ChoSunCollector {
     return OffsetDateTime.parse(pubDate, NAVER_DATE_FORMATTER).toLocalDateTime();
   }
 
-  protected Article buildArticleFromHanKyungItem(RssItem rssItem, String summary, Interest interest) {
+  protected Article buildArticleFromChoSunItem(RssItem rssItem, String summary, Interest interest) {
 
     List<Keyword> keywords = keywordRepository.findByInterest(interest);
 

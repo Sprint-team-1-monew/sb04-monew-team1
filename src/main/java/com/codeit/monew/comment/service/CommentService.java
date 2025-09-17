@@ -18,6 +18,7 @@ import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.exception.comment.CommentErrorCode;
 import com.codeit.monew.exception.comment.CommentException;
+import com.codeit.monew.notification.event.CommentLikeEvent;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
@@ -28,6 +29,7 @@ import java.util.Map;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,8 @@ public class CommentService {
 
   private final UserRepository userRepository;
   private final ArticleRepository articleRepository;
+
+  private final ApplicationEventPublisher publisher;
 
   public CommentDto createComment(CommentRegisterRequest commentRegisterRequest) {
 
@@ -207,6 +211,8 @@ public class CommentService {
     // 좋아요 카운트 증가
     comment.setLikeCount(comment.getLikeCount() + 1);
     commentRepository.save(comment);
+
+    publisher.publishEvent(new CommentLikeEvent(comment.getUser().getId(),comment.getId(),requestUserId));
 
     return new CommentLikeDto(
         commentLike.getId(),

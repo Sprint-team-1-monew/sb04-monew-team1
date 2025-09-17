@@ -17,12 +17,12 @@ public interface NotificationRepository extends JpaRepository<Notification, UUID
   List<Notification> findByConfirmedTrueAndUpdatedAtBefore(LocalDateTime weekAgo);
 
   @Query("""
-    SELECT n FROM Notification n
-    WHERE n.user.id = :userId
-      AND n.confirmed = false
-      AND n.createdAt > :after
-    ORDER BY n.createdAt ASC
-""")
+        SELECT n FROM Notification n
+        WHERE n.user.id = :userId
+          AND n.confirmed = false
+          AND n.createdAt > :after
+        ORDER BY n.createdAt ASC
+    """)
   List<Notification> findUnconfirmedNotifications(
       @Param("userId") UUID userId,
       @Param("after") LocalDateTime after,

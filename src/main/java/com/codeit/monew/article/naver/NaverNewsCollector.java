@@ -11,9 +11,12 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
@@ -67,14 +70,15 @@ public class NaverNewsCollector {
   }
 
   @Transactional
-  public int naverArticleCollect() throws InterruptedException {
+  public Map<UUID, Integer> naverArticleCollect() throws InterruptedException {
     log.info("네이버 기사 수집 스케줄링 수집 시작: {}", LocalDateTime.now());
     int display = 100;
     int start = 1;
     String sort = "date";
-    int collectedNewArticlesCount = 0;
 
     List<Interest> interests = interestRepository.findAll();
+
+    Map<UUID, Integer> interestIdAndArticlesSize = new HashMap<>();
     // 모든 관심사를 가져옴
 
     for (Interest interest : interests) {
@@ -106,12 +110,10 @@ public class NaverNewsCollector {
       for (int i = sortedNaverNewsItems.size() - 1; i >= 0; i--) {
         articleRepository.save(sortedNaverNewsItems.get(i));
         TimeUnit.MILLISECONDS.sleep(1); // createdAt 값이 유니크해져서 정렬하기 편해진다.
-        collectedNewArticlesCount++;
+        interestIdAndArticlesSize.put(interest.getId(), sortedNaverNewsItems.size());
       }
     }
-    //log.info("네이버 기사 수집 스케줄링 수집 완료: {}", LocalDateTime.now());
-    //log.info("네이버 기사 수집 후 총 기사 개수: {}", articleRepository.count());
-    return collectedNewArticlesCount;
+    return interestIdAndArticlesSize;
   }
 
   @Transactional(readOnly = true)
