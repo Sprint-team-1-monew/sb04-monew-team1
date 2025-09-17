@@ -19,11 +19,8 @@ import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
 import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
-import com.codeit.monew.comment.repository.likeRepository.CommentLikeQuerydslRepositoryCustom;
-import com.codeit.monew.comment.repository.likeRepository.CommentLikeQuerydslRepositoryImpl;
-import com.codeit.monew.comment.repository.likeRepository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
-import com.codeit.monew.comment.repository.CommentRepositoryCustom;
+import com.codeit.monew.comment.repository.likeRepository.CommentLikeRepository;
 import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
@@ -55,20 +52,11 @@ public class CommentServiceTest {
   @Mock
   private CommentLikeRepository commentLikeRepository;
 
-  @Mock
-  private CommentLikeQuerydslRepositoryImpl commentLikeQuerydslRepositoryImpl;
-
-  @Mock
-  private CommentLikeQuerydslRepositoryCustom commentLikeQuerydslRepositoryCustom;
-
-  @Mock
-  private CommentRepositoryCustom commentRepositoryCustom;
-
   @InjectMocks
   private CommentService commentService;
 
   @Mock
-  private UserRepository userRepository;  // Mock 객체\
+  private UserRepository userRepository;
 
   @Mock
   private ArticleRepository articleRepository;
@@ -232,7 +220,7 @@ public class CommentServiceTest {
     commentService.hardDeleteComment(commentId);
 
     //then
-    verify(commentLikeRepository, times(1)).deleteByCommentId(commentId);
+    verify(commentLikeRepository, times(1)).deleteByCommentId(eq(commentId));
     verify(commentRepository, times(1)).delete(mappedEntity);
 
   }
