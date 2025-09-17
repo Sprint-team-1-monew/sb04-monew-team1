@@ -71,7 +71,9 @@ public class CommentController {
   public ResponseEntity<Void> deleteCommentSoft(
       @PathVariable("commentId") UUID commentId
   ) {
+    log.info("댓글 논리 삭제 요청 : {}", commentId);
     commentService.softDeleteComment(commentId);
+    log.info("댓글 논리 삭제 완료 : {}", commentId);
     return ResponseEntity.noContent().build();
   }
 
@@ -92,10 +94,10 @@ public class CommentController {
       @RequestParam(defaultValue = "50") int limit,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
 
-    log.info("댓글 목록 조회 test : {}", requestUserId);
+    log.info("댓글 목록 조회 요청 : {}", requestUserId);
     CursorPageResponseCommentDto responseCommentDto = commentService.getComments(articleId, orderBy,
         direction, cursor, after, limit, requestUserId);
-    log.info("댓글 목록 조회 test 종료 : {}", responseCommentDto);
+    log.info("댓글 목록 조회 완료 : {}", responseCommentDto);
 
     return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
   }
@@ -114,8 +116,11 @@ public class CommentController {
   @DeleteMapping(path = "/{commentId}/comment-likes")
   public ResponseEntity<Void> deleteCommentLike(@PathVariable("commentId") UUID commentId,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
+    log.info("댓글 좋아요 취소 요청 : {}", commentId);
 
     commentService.deleteCommentLike(commentId, requestUserId);
+
+    log.info("댓글 좋아요 취소 완료 : {}", commentId);
 
     return ResponseEntity.noContent().build();
   }
