@@ -1,17 +1,12 @@
 name: CD
-run-name: ${{ inputs.pr_title }}
 
 on:
-  workflow_call:
-    inputs:
-      pr_title:
-        required: true
-        type: string
-    secrets:
-      AWS_ACCESS_KEY_ID:
-        required: true
-      AWS_SECRET_ACCESS_KEY:
-        required: true
+  workflow_run:
+    workflows: [ "CI" ]
+    types:
+      - completed
+    run-name: ${{ github.event.workflow_run.name }}
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
