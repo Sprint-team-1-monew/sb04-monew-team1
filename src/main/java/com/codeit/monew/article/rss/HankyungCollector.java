@@ -90,17 +90,6 @@ public class HankyungCollector {
     return interestIdAndArticlesSize;
   }
 
-  private boolean isArticleDuplicated(Article article) {
-    log.info("한국경제 기사 중복 검사 시작: {}", article.getSourceUrl());
-    Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
-    if (articleOptional.isPresent()) {
-      log.info("한국경제 기사 중복 검사 발견: {}", article.getSourceUrl());
-      return true;
-    }
-    log.info("한국경제 기사 중복 검사 종료: {}", article.getSourceUrl());
-    return false;
-  }
-
   public String getArticleSummary(String articleUrl) throws Exception {
     Document doc = Jsoup.connect(articleUrl)
         .userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
@@ -140,6 +129,22 @@ public class HankyungCollector {
     return items;
   }
 
+  @Transactional(readOnly = true)
+  public int getAllHanKyungArticlesCount() {
+    return articleRepository.countBySource("HanKyung");
+  }
+
+  private boolean isArticleDuplicated(Article article) {
+    log.info("한국경제 기사 중복 검사 시작: {}", article.getSourceUrl());
+    Optional<Article> articleOptional = articleRepository.findBySourceUrl(article.getSourceUrl()); // 없어야 됨
+    if (articleOptional.isPresent()) {
+      log.info("한국경제 기사 중복 검사 발견: {}", article.getSourceUrl());
+      return true;
+    }
+    log.info("한국경제 기사 중복 검사 종료: {}", article.getSourceUrl());
+    return false;
+  }
+
   private static String text(Element parent, String tag) {
     Element el = parent.selectFirst(tag);
     return el == null ? "" : el.text().trim();
@@ -160,9 +165,6 @@ public class HankyungCollector {
     }
     return null;
   }
-
-  private static final DateTimeFormatter NAVER_DATE_FORMATTER =
-      DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH);
 
   private Article buildArticleFromHanKyungItem(RssItem rssItem, String summary, Interest interest) {
 
@@ -187,10 +189,5 @@ public class HankyungCollector {
         .deleted(false)
         .interest(interest)
         .build();
-  }
-
-  @Transactional(readOnly = true)
-  public int getAllHanKyungArticlesCount() {
-    return articleRepository.countBySource("HanKyung");
   }
 }
