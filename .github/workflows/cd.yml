@@ -1,12 +1,5 @@
-#on:
-#  workflow_dispatch:
-#    inputs:
-#      pr_title:
-#        description: "Title of the PR to display in run-name"
-#        required: true
-
 name: CD
-run-name: ${{ github.event.inputs.pr_title }}
+run-name: ${{ steps.read_pr_title.outputs.pr_title }}
 
 on:
   workflow_run:
@@ -27,6 +20,17 @@ jobs:
       AWS_REGION: ap-northeast-2
     steps:
       - uses: actions/checkout@v4
+
+      - name: Download PR title artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: pr-title
+
+      - name: Read PR title
+        id: read_pr_title
+        run: |
+          PR_TITLE=$(cat pr_title.txt)
+          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
 
       - name: AWS ECS Configure
         uses: aws-actions/configure-aws-credentials@v4
