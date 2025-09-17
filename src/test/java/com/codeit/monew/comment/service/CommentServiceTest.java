@@ -627,4 +627,77 @@ public class CommentServiceTest {
     then(commentLikeRepository).should(times(1)).delete(commentLike);
 
   }
+  @Test
+  @DisplayName("댓글 좋아요 취소 실패 - 댓글이 존재하지 않음")
+  void deleteCommentLike_Fail_CommentNotFound() {
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    //given 댓글 없음
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+
+    //when
+    CommentException exception = assertThrows(CommentException.class,
+        () -> commentService.deleteCommentLike(commentId, requestUserId));
+
+    //then
+    assertEquals(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, exception.getErrorCode());
+
+    verify(commentRepository, times(1)).findById(commentId);
+    verifyNoMoreInteractions(commentRepository);
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 취소 실패 - 사용자 존재하지 않음")
+  void deleteCommentLike_Fail_UserNotFound() {
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    //given
+    Comment comment = Comment.builder().id(commentId).likeCount(1).build();
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(requestUserId)).willReturn(Optional.empty());
+
+    //when
+    UserException exception = assertThrows(UserException.class,
+        () -> commentService.deleteCommentLike(commentId, requestUserId));
+
+    assertEquals(UserErrorCode.USER_NOT_FOUND, exception.getErrorCode());
+
+    //then
+    verify(commentRepository, times(1)).findById(commentId);
+    verify(userRepository, times(1)).findById(requestUserId);
+    verifyNoMoreInteractions(commentRepository, userRepository);
+  }
+
+  @Test
+  @DisplayName("댓글 좋아요 취소 실패 - 댓글에 좋아요 없음")
+  void deleteCommentLike_Fail_CommentNotLiked() {
+    UUID commentId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    //given
+    Comment comment = Comment.builder().id(commentId).likeCount(1).build();
+    User user = User.builder().id(requestUserId).build();
+
+    given(commentRepository.findById(commentId)).willReturn(Optional.of(comment));
+    given(userRepository.findById(requestUserId)).willReturn(Optional.of(user));
+
+    // 댓글 좋아요 없음
+    given(commentLikeRepository.findByCommentAndUser(comment, user)).willReturn(Optional.empty());
+
+    //when
+    CommentException exception = assertThrows(CommentException.class,
+        () -> commentService.deleteCommentLike(commentId, requestUserId));
+
+    //then
+    assertEquals(CommentErrorCode.COMMENT_NOT_LIKE, exception.getErrorCode());
+
+    verify(commentRepository, times(1)).findById(commentId);
+    verify(userRepository, times(1)).findById(requestUserId);
+    verify(commentLikeRepository, times(1)).findByCommentAndUser(comment, user);
+    verifyNoMoreInteractions(commentRepository, userRepository, commentLikeRepository);
+  }
+
 }
