@@ -1,14 +1,7 @@
 name: CD
-run-name: ${{ github.event.inputs.pr_title }}
+run-name: ${{ inputs.pr_title }}
 
 on:
-  workflow_dispatch:
-    inputs:
-      pr_title:
-        description: 'PR 제목'
-        required: true
-        type: string
-
   workflow_call:
     inputs:
       pr_title:
