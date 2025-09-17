@@ -62,11 +62,12 @@ jobs:
           -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
           --push .
 
-#      - name: Trigger CD workflow
-#        uses: peter-evans/workflow-dispatch@v1
-#        with:
-#          workflow: CD.yml
-#          ref: dev
-#          inputs:
-#            pr_title: ${{ steps.pr_check.outputs.pr_title }}
+      - name: Save PR title to artifact
+        run: echo "${{ steps.pr_check.outputs.pr_title }}" > pr_title.txt
+
+      - name: Upload PR title artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: pr-title
+          path: pr_title.txt
 
