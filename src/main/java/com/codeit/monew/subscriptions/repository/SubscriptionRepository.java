@@ -16,4 +16,6 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
   Optional<Subscription> findByUserAndInterest(User user, Interest interest);
 
   List<Subscription> findAllByInterest(Interest interest);
+
+  List<Subscription> findAllByInterestId(UUID interestId);
 }

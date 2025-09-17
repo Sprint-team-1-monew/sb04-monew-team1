@@ -81,7 +81,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false)
         .content("[경제]와 관련된 기사가 3건 등록되었습니다.")
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.interest)
         .resourceId(interestId)
         .build();
 
@@ -94,7 +94,7 @@ public class NotificationServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isEqualTo("[경제]와 관련된 기사가 3건 등록되었습니다.");
     assertThat(result.isConfirmed()).isFalse();
-    assertThat(result.getResourceType()).isEqualTo(ResourceType.INTEREST);
+    assertThat(result.getResourceType()).isEqualTo(ResourceType.interest);
     assertThat(result.getResourceId()).isEqualTo(interestId);
   }
 
@@ -135,7 +135,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false)
         .content("[좋아요누른사람]님이 나의 댓글을 좋아합니다.")
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(commentId)
         .build();
 
@@ -148,7 +148,7 @@ public class NotificationServiceTest {
     assertThat(result).isNotNull();
     assertThat(result.getUser().getId()).isEqualTo(userId);
     assertThat(result.getResourceId()).isEqualTo(commentId);
-    assertThat(result.getResourceType()).isEqualTo(ResourceType.COMMENT);
+    assertThat(result.getResourceType()).isEqualTo(ResourceType.comment);
     assertThat(result.getContent()).isEqualTo("[좋아요누른사람]님이 나의 댓글을 좋아합니다.");
   }
 
@@ -169,7 +169,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false)
         .content("알림")
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.interest)
         .resourceId(UUID.randomUUID())
         .build();
     ReflectionTestUtils.setField(notification, "id", notificationId);
@@ -202,7 +202,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false)
         .content("알림1")
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.interest)
         .resourceId(UUID.randomUUID())
         .build();
 
@@ -210,7 +210,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false)
         .content("알림2")
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(UUID.randomUUID())
         .build();
 
@@ -242,7 +242,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(true) // 삭제 대상
         .content("알림1")
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(UUID.randomUUID())
         .updatedAt(weekAgo.minusDays(1)) // 1주일보다 오래됨
         .build();
@@ -287,7 +287,7 @@ public class NotificationServiceTest {
         .user(user)
         .confirmed(false) // 삭제 대상 아님
         .content("알림2")
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(UUID.randomUUID())
         .updatedAt(weekAgo.minusDays(2))
         .build();
@@ -316,7 +316,7 @@ public class NotificationServiceTest {
         .user(User.builder().id(userId).build())
         .confirmed(false)
         .content("첫 번째 알림")
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.interest)
         .resourceId(UUID.randomUUID())
         .createdAt(now.minusMinutes(10))
         .build();
@@ -326,7 +326,7 @@ public class NotificationServiceTest {
         .user(User.builder().id(userId).build())
         .confirmed(false)
         .content("두 번째 알림")
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(UUID.randomUUID())
         .createdAt(now.minusMinutes(5))
         .build();
