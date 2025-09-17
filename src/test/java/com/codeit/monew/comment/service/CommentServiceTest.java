@@ -2,8 +2,10 @@ package com.codeit.monew.comment.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -290,6 +292,21 @@ public class CommentServiceTest {
   }
 
   @Test
+  @DisplayName("댓글 논리 삭제 실패 - 댓글을 찾을 수 없음")
+  void softDelete_Fail_CommentNotFound() {
+    //given
+    UUID commentId = UUID.randomUUID();
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    CommentException exception = assertThrows(CommentException.class,
+        () -> commentService.softDeleteComment(commentId));
+
+    assertEquals(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, exception.getErrorCode());
+
+    verify(commentRepository, never()).save(any(Comment.class));
+  }
+
+  @Test
   @DisplayName("댓글 물리 삭제 성공")
   void hardDelete_Success() {
 
@@ -401,6 +418,49 @@ public class CommentServiceTest {
     assertThat(result.content().get(0).articleId()).isEqualTo(articleId);
     assertThat(result.hasNext()).isFalse();
 
+  }
+
+  @Test
+  @DisplayName("댓글 목록 조회 실패 - 존재하지 않는 기사")
+  void getComments_Fail_ArticleNotFound() {
+    // given
+    UUID articleId = UUID.randomUUID();
+    UUID requestUserId = UUID.randomUUID();
+
+    // commentRepository.findComments 호출 시 빈 리스트 반환
+    given(commentRepository.findComments(
+        articleId,
+        CommentOrderBy.createdAt,
+        SortDirection.DESC,
+        "",
+        null,
+        10
+    )).willReturn(List.of());
+
+    // commentRepository.countByArticleId 호출 시 0 반환
+    given(commentRepository.countByArticleId(articleId)).willReturn(0L);
+
+    // when
+    CursorPageResponseCommentDto result = commentService.getComments(
+        articleId,
+        CommentOrderBy.createdAt,
+        SortDirection.DESC,
+        "",
+        null,
+        10,
+        requestUserId
+    );
+
+    // then - 결과 검증
+    assertEquals(0, result.content().size());      // 댓글 수 0
+    assertEquals(0L, result.totalElements());     // 전체 댓글 수 0
+    assertTrue(result.content().isEmpty());       // 리스트 비었는지 확인
+    assertFalse(result.hasNext());                // 다음 페이지 없음을 확인
+
+    // then - repository 호출 검증
+    verify(commentRepository, times(1))
+        .findComments(eq(articleId), any(), any(), anyString(), any(), anyInt());
+    verify(commentRepository, times(1)).countByArticleId(articleId);
   }
 
   @Test
