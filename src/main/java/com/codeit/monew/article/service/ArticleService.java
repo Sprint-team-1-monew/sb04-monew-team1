@@ -12,6 +12,8 @@ import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
 import com.codeit.monew.comment.repository.CommentRepository;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.user.entity.User;
+import com.codeit.monew.user.exception.UserErrorCode;
+import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
@@ -118,8 +120,6 @@ public class ArticleService {
     User user = checkUser(requestUserId);
 
     log.info("기사 뷰 기록 조회 시작 - articleId={}, userId={}", articleId, requestUserId);
-    Optional<ArticlesViewUser> found = articleViewUserRepository.findByArticleAndUser(article, user);
-
     ArticlesViewUser viewUser = articleViewUserRepository.findByArticleAndUser(article, user)
         .orElseGet(() -> createViewUserSafely(article, user));
 
@@ -139,7 +139,7 @@ public class ArticleService {
     return articleRepository.findDistinctSources();
   }
 
-  protected ArticlesViewUser createViewUserSafely(Article article, User user) {
+  private ArticlesViewUser createViewUserSafely(Article article, User user) {
     try {
       ArticlesViewUser saved = articleViewUserRepository.save(new ArticlesViewUser(article, user));
       articleViewUserRepository.flush(); // 감사필드(createdAt) 채워짐 보장
@@ -176,7 +176,7 @@ public class ArticleService {
           log.info("유저가 없습니다 {}", userId);
           Map<String, Object> details = new HashMap<>();
           details.put("이유", userId + " 유저는 존재하지 않습니다.");
-          return new ArticleNotFoundException(details); // 유저 낫 파운드 이셉션으로 변경하기
+          return new UserException(UserErrorCode.USER_NOT_FOUND, details); // 유저 낫 파운드 이셉션으로 변경하기
         });
     log.info("유저 존재 검증 완료 {}", userId);
     return user;
