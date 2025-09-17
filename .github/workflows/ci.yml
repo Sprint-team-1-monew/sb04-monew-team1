@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [dev, main]
+    branches: [ dev, main ]
 
 jobs:
   build-and-push:
@@ -27,7 +27,7 @@ jobs:
           else
             PR_TITLE=$(gh pr view $PR_NUMBER --json title --jq ".title")
             echo "PR #$PR_NUMBER merged. Title: $PR_TITLE"
-            echo "::set-output name=pr_title::$PR_TITLE"
+            echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
