@@ -78,7 +78,8 @@ public class NotificationService {
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, Map.of("commentId", commentId)));
 
     if (!comment.getUser().getId().equals(user.getId())) {
-      throw new IllegalArgumentException("해당 댓글은 이 사용자의 댓글이 아닙니다.");
+      throw new CommentException(CommentErrorCode.IDENTITY_VERIFICATION_EXCEPTION,
+          Map.of("userId", userId, "commentId", commentId));
     }
 
     String message = String.format("[%s]님이 나의 댓글을 좋아합니다.", likeByUser.getNickname());
