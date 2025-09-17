@@ -34,10 +34,10 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     BooleanBuilder where = new BooleanBuilder();
     where.and(comment.article.id.eq(articleId));
 
-    if(after != null) {
-      if(direction == SortDirection.ASC) {
+    if (after != null) {
+      if (direction == SortDirection.ASC) {
         where.and(comment.createdAt.gt(after));
-      } else{
+      } else {
         where.and(comment.createdAt.lt(after));
       }
     }
@@ -45,9 +45,11 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
     // 정렬 조건
     OrderSpecifier<?> orderSpecifier;
     if (orderBy == CommentOrderBy.likeCount) {
-      orderSpecifier = direction == SortDirection.ASC ? comment.likeCount.asc() : comment.likeCount.desc();
+      orderSpecifier =
+          direction == SortDirection.ASC ? comment.likeCount.asc() : comment.likeCount.desc();
     } else {
-      orderSpecifier = direction == SortDirection.ASC ? comment.createdAt.asc() : comment.createdAt.desc();
+      orderSpecifier =
+          direction == SortDirection.ASC ? comment.createdAt.asc() : comment.createdAt.desc();
     }
 
     return queryFactory
@@ -56,7 +58,7 @@ public class CommentRepositoryImpl implements CommentRepositoryCustom {
         .leftJoin(comment.article).fetchJoin()
         .where(where)
         .orderBy(orderSpecifier)
-        .limit(limit+1)
+        .limit(limit + 1)
         .fetch();
   }
 }

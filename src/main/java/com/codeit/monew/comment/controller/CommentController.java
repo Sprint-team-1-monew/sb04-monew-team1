@@ -87,13 +87,14 @@ public class CommentController {
   public ResponseEntity<CursorPageResponseCommentDto> getAllComments(@RequestParam UUID articleId,
       @RequestParam CommentOrderBy orderBy,
       @RequestParam SortDirection direction,
-      @RequestParam (required = false) String cursor,
-      @RequestParam (required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime after,
-      @RequestParam (defaultValue = "50") int limit,
+      @RequestParam(required = false) String cursor,
+      @RequestParam(required = false) @DateTimeFormat(iso = ISO.DATE_TIME) LocalDateTime after,
+      @RequestParam(defaultValue = "50") int limit,
       @RequestHeader("Monew-Request-User-ID") UUID requestUserId) {
 
     log.info("댓글 목록 조회 test : {}", requestUserId);
-    CursorPageResponseCommentDto responseCommentDto= commentService.getComments(articleId, orderBy, direction, cursor, after, limit, requestUserId);
+    CursorPageResponseCommentDto responseCommentDto = commentService.getComments(articleId, orderBy,
+        direction, cursor, after, limit, requestUserId);
     log.info("댓글 목록 조회 test 종료 : {}", responseCommentDto);
 
     return ResponseEntity.status(HttpStatus.OK).body(responseCommentDto);
