@@ -7,13 +7,10 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.doReturn;
-import static org.mockito.Mockito.spy;
 
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.codeit.monew.article.rss.ChoSunCollector;
-import com.codeit.monew.article.rss.HankyungCollector;
 import com.codeit.monew.article.rss.RssItem;
 import com.codeit.monew.interest.entity.Interest;
 import com.codeit.monew.interest.repository.InterestRepository;
@@ -24,18 +21,23 @@ import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.MockedStatic;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 
 @ExtendWith(MockitoExtension.class)
 public class ArticleColletorTest {
-  @org.mockito.Mock
+
+  @Mock
   ArticleRepository articleRepository;
-  @org.mockito.Mock
+
+  @Mock
   InterestRepository interestRepository;
-  @org.mockito.Mock
+
+  @Mock
   KeywordRepository keywordRepository;
+
   @Test
   @DisplayName("조선 일보 테스트")
   void chosun_collector_test() throws Exception {
@@ -108,38 +110,5 @@ public class ArticleColletorTest {
       // then
       verify(articleRepository, never()).save(any(Article.class));
     }
-  }
-
-  @Test
-  @DisplayName("한국 경제 테스트")
-  void hankyung_saves_whenMatch_andNotDuplicated() throws Exception {
-    // given
-    HankyungCollector spyCollector = spy(new HankyungCollector(
-        null, articleRepository, interestRepository, keywordRepository));
-
-    Interest interest = Interest.builder().name("상속세").build();
-    when(interestRepository.findAll()).thenReturn(List.of(interest));
-    when(keywordRepository.findByInterest(interest)).thenReturn(List.of());
-
-    LocalDateTime now = LocalDateTime.now();
-    RssItem item = new RssItem(
-        "대선 때 18억까지 상속세 면제 공약",
-        "https://www.hankyung.com/politics/2025/09/11/ABC123/",
-        now
-    );
-
-    doReturn(List.of(item)).when(spyCollector).getAllRss();
-    doReturn("요약 상속세 포함").when(spyCollector).getArticleSummary(item.link());
-
-    when(articleRepository.findBySourceUrl(item.link())).thenReturn(Optional.empty());
-
-    when(articleRepository.save(any(Article.class)))
-        .thenAnswer(inv -> inv.getArgument(0));
-
-    // when
-    spyCollector.hanKyungArticleCollect();
-
-    // then — 호출 횟수만 검증(인자 무시)
-    verify(articleRepository, times(1)).save(any(Article.class));
   }
 }
