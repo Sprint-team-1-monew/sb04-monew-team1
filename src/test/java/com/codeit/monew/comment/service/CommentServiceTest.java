@@ -19,6 +19,7 @@ import com.codeit.monew.comment.entity.CommentLike;
 import com.codeit.monew.comment.entity.CommentOrderBy;
 import com.codeit.monew.comment.entity.SortDirection;
 import com.codeit.monew.comment.mapper.CommentMapper;
+import com.codeit.monew.comment.repository.likeRepository.CommentLikeQuerydslRepositoryCustom;
 import com.codeit.monew.comment.repository.likeRepository.CommentLikeQuerydslRepositoryImpl;
 import com.codeit.monew.comment.repository.likeRepository.CommentLikeRepository;
 import com.codeit.monew.comment.repository.CommentRepository;
@@ -56,6 +57,9 @@ public class CommentServiceTest {
 
   @Mock
   private CommentLikeQuerydslRepositoryImpl commentLikeQuerydslRepositoryImpl;
+
+  @Mock
+  private CommentLikeQuerydslRepositoryCustom commentLikeQuerydslRepositoryCustom;
 
   @Mock
   private CommentRepositoryCustom commentRepositoryCustom;
@@ -228,7 +232,7 @@ public class CommentServiceTest {
     commentService.hardDeleteComment(commentId);
 
     //then
-    verify(commentLikeQuerydslRepositoryImpl, times(1)).deleteByCommentId(commentId);
+    verify(commentLikeRepository, times(1)).deleteByCommentId(commentId);
     verify(commentRepository, times(1)).delete(mappedEntity);
 
   }
