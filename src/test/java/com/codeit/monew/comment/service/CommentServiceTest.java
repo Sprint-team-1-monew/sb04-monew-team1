@@ -1,7 +1,9 @@
 package com.codeit.monew.comment.service;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyInt;
@@ -9,6 +11,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.then;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
@@ -25,6 +28,8 @@ import com.codeit.monew.comment.request.CommentRegisterRequest;
 import com.codeit.monew.comment.request.CommentUpdateRequest;
 import com.codeit.monew.comment.response_dto.CommentDto;
 import com.codeit.monew.comment.response_dto.CursorPageResponseCommentDto;
+import com.codeit.monew.exception.comment.CommentErrorCode;
+import com.codeit.monew.exception.comment.CommentException;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
@@ -110,7 +115,6 @@ public class CommentServiceTest {
         .id(userId)
         .nickname("tester")
         .build();
-
 
     Article mockArticle = Article.builder()
         .id(articleId)
@@ -227,6 +231,27 @@ public class CommentServiceTest {
     verify(commentLikeRepository, times(1)).deleteByCommentId(eq(commentId));
     verify(commentRepository, times(1)).delete(mappedEntity);
 
+  }
+
+  @Test
+  @DisplayName("댓글 물리 삭제 실패 - 댓글이 없는 경우")
+  void hardDelete_Failure_CommentNotFound() {
+
+    // given
+    UUID commentId = UUID.randomUUID();
+    given(commentRepository.findById(commentId)).willReturn(Optional.empty());
+
+    // when & then
+    CommentException exception = assertThrows(CommentException.class, () -> {
+      commentService.hardDeleteComment(commentId);
+    });
+
+    // 예외 코드 검증
+    assertEquals(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION, exception.getErrorCode());
+
+    // Repository 호출 검증: 댓글 없으니 delete 메서드는 호출되지 않아야 함
+    verify(commentLikeRepository, never()).deleteByCommentId(any(UUID.class));
+    verify(commentRepository, never()).delete(any(Comment.class));
   }
 
   @Test

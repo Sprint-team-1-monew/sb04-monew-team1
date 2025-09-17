@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CommentRepositoryCustom {
+
   List<Comment> findComments(UUID articleId,
       CommentOrderBy orderBy,
       SortDirection direction,
