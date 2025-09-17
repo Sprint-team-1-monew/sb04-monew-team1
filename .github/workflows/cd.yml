@@ -60,9 +60,12 @@ jobs:
     steps:
       - name: Set dynamic workflow run name
         run: |
-          NEW_NAME="CD deploy for PR ${{ github.event.workflow_run.pull_requests[0].number }}"
+          # PR 제목 가져오기
+          PR_TITLE="${{ github.event.workflow_run.pull_requests[0].title }}"
+          
+          # GitHub API 호출로 워크플로우 이름 변경
           curl -X PATCH \
             -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -d "{\"name\": \"$NEW_NAME\"}"
+            -d "{\"name\": \"CD: $PR_TITLE\"}"
