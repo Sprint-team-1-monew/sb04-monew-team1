@@ -58,20 +58,20 @@ jobs:
           cluster: ${{ env.ECS_CLUSTER }}
           wait-for-service-stability: true
 
-  rename-and-deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Get CI workflow name
-        id: get_ci_name
-        run: |
-          CI_NAME="${{ github.event.workflow_run.name }}"
-          echo "ci_name=$CI_NAME" >> $GITHUB_OUTPUT
-
-      - name: Rename CD workflow
-        run: |
-          echo "Renaming workflow to: CD: ${{ steps.get_ci_name.outputs.ci_name }}"
-          curl -X PATCH \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
-            -H "Accept: application/vnd.github+json" \
-            https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
-            -d '{"name": "CD: '"$PR_TITLE"'"}'
+#  rename-and-deploy:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Get CI workflow name
+#        id: get_ci_name
+#        run: |
+#          CI_NAME="${{ github.event.workflow_run.name }}"
+#          echo "ci_name=$CI_NAME" >> $GITHUB_OUTPUT
+#
+#      - name: Rename CD workflow
+#        run: |
+#          echo "Renaming workflow to: CD: ${{ steps.get_ci_name.outputs.ci_name }}"
+#          curl -X PATCH \
+#            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+#            -H "Accept: application/vnd.github+json" \
+#            https://api.github.com/repos/${{ github.repository }}/actions/runs/${{ github.run_id }} \
+#            -d '{"name": "CD: '"$PR_TITLE"'"}'
