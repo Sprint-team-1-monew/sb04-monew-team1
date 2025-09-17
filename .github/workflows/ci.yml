@@ -17,11 +17,10 @@ jobs:
       - name: Check if commit belongs to merged PR
         id: pr_check
         run: |
-          gh pr list --state merged --base dev --json number,mergeCommit --jq ".[] | select(.mergeCommit.oid==\"$GITHUB_SHA\") | .number" > pr_number.txt || true
-          PR_NUMBER=$(cat pr_number.txt)
+          PR_NUMBER=$(gh pr list --state merged --base dev --json number,mergeCommit --jq ".[] | select(.mergeCommit.oid==\"$GITHUB_SHA\") | .number")
           if [ -z "$PR_NUMBER" ]; then
-            echo "Not a PR merge commit. Skipping CI."
-            exit 78
+            echo "Not a PR merge commit. Ending workflow successfully."
+            exit 0   # <- 성공 처리 후 전체 종료
           else
             echo "PR #$PR_NUMBER merged. Continue CI."
           fi
