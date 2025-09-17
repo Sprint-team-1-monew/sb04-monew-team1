@@ -28,7 +28,7 @@ jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    name: "${{ needs.get_pr_info.outputs.pr_title }}"
+    run-name: "${{ needs.get_pr_info.outputs.pr_title }}"
     env:
       ECS_CLUSTER: cluster-monew
       ECS_SERVICE: monew-task-service-13fqphcy
