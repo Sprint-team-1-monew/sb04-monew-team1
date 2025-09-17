@@ -9,11 +9,13 @@ import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
-import org.mapstruct.Named;
 
 @Mapper(componentModel = "spring")
 public interface UserMapper {
 
+  @Mapping(target = "id", ignore = true)
+  @Mapping(target = "createdAt", ignore = true)
+  @Mapping(target = "updatedAt", ignore = true)
   @Mapping(target = "password", ignore = true) // 비밀번호 암호화는 서비스 계층에서 하기 위함
   @Mapping(target = "userStatus", ignore = true)
   @Mapping(target = "deletedAt", ignore = true)
@@ -25,6 +27,7 @@ public interface UserMapper {
 
   UserDto toDto(User user);
 
+  @SuppressWarnings("unchecked")
   @AfterMapping
   default void initUser(@MappingTarget User.UserBuilder user) {
     user.userStatus(UserStatus.ACTIVE);
