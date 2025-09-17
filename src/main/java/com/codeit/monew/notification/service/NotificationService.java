@@ -58,7 +58,7 @@ public class NotificationService {
         .user(user)
         .confirmed(false)
         .content(message)
-        .resourceType(ResourceType.INTEREST)
+        .resourceType(ResourceType.interest)
         .resourceId(interestId)
         .build();
 
@@ -87,7 +87,7 @@ public class NotificationService {
         .user(user)
         .confirmed(false)
         .content(message)
-        .resourceType(ResourceType.COMMENT)
+        .resourceType(ResourceType.comment)
         .resourceId(commentId)
         .build();
 
@@ -196,22 +196,18 @@ public class NotificationService {
 
     LocalDateTime nextAfter = null;
     if (!notifications.isEmpty()) {
-      Notification last = notifications.get(notifications.size() - 1);
-      nextAfter = last.getCreatedAt();
+      nextAfter = notifications.get(notifications.size() - 1).getCreatedAt();
     }
 
     Long totalElements = notificationRepository.countByUserIdAndConfirmedFalse(userId);
 
-    String nextAfterStr = (nextAfter != null) ? nextAfter.toString() : null;
-
     return new CursorPageResponseNotificationDto(
         content,
-        nextAfterStr,
+        nextAfter != null ? nextAfter.toString() : null,
         nextAfter,
-        content.size(),
+        limit,
         totalElements,
         hasNext
     );
   }
-
 }
