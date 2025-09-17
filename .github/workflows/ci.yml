@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  build-and-push:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: ap-northeast-2
+      IMAGE: public.ecr.aws/w7n1o6b8/monew
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: AWS Configure
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login AWS Public ECR
+        run: |
+          aws ecr-public get-login-password --region us-east-1 \
+          | docker login --username AWS --password-stdin public.ecr.aws
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: tag making(SHA)
+        id: shatag
+        run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image and push
+        run: |
+          docker buildx build \
+          --platform linux/amd64,linux/arm64 \
+          -t $IMAGE:latest \
+          -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
+          --push .
