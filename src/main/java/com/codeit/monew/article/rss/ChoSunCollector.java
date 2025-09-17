@@ -178,12 +178,6 @@ public class ChoSunCollector {
         .build();
   }
 
-  public static void main(String[] args) throws Exception {
-    List<RssItem> rssItems = getAllRss();
-    String summary = getArticleSummary("https://www.chosun.com/politics/politics_general/2025/09/11/3CA4QSSBG5GHXNUBCUCZN5TCWI/");
-    System.out.println(summary);
-  }
-
   @Transactional(readOnly = true)
   public int getAllChoSunArticlesCount() {
     return articleRepository.countBySource("ChoSun");
