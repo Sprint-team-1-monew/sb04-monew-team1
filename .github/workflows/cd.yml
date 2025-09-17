@@ -1,34 +1,16 @@
-name: CD
-
 on:
-  workflow_run:
-    workflows: [ "CI" ]
-    types:
-      - completed
-    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      pr_title:
+        description: "Title of the PR to display in run-name"
+        required: true
+
+name: CD Workflow
+run-name: ${{ github.event.inputs.pr_title }}
 
 jobs:
-  get_pr_info:
-    runs-on: ubuntu-latest
-    outputs:
-      pr_title: ${{ steps.pr_title.outputs.title }}
-    steps:
-      - name: Get PR title from CI commit
-        id: pr_title
-        run: |
-          # CI 워크플로우 head_sha 기준으로 PR 제목 가져오기
-          PR_TITLE=$(gh pr list --state merged --json number,title,mergeCommit \
-            --jq ".[] | select(.mergeCommit.oid==\"${{ github.event.workflow_run.head_sha }}\") | .title")
-          if [ -z "$PR_TITLE" ]; then
-            PR_TITLE="Unknown PR"
-          fi
-          echo "::set-output name=title::$PR_TITLE"
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-    run-name: "${{ needs.get_pr_info.outputs.pr_title }}"
     env:
       ECS_CLUSTER: cluster-monew
       ECS_SERVICE: monew-task-service-13fqphcy
