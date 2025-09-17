@@ -4,14 +4,13 @@ on:
   push:
     branches: [ dev, main ]
 
+env:
+  AWS_REGION: ap-northeast-2
+  IMAGE: public.ecr.aws/w7n1o6b8/monew
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
-    env:
-      AWS_REGION: ap-northeast-2
-      IMAGE: public.ecr.aws/w7n1o6b8/monew
-#    outputs:
-#      pr_title: ${{ steps.pr_check.outputs.pr_title }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,19 +53,14 @@ jobs:
         id: shatag
         run: echo "SHORT_SHA=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Build Docker image and push
-        run: |
-          docker buildx build \
-          --platform linux/amd64,linux/arm64 \
-          -t $IMAGE:latest \
-          -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
-          --push .
-#
-#  deploy:
-#    needs: build-and-push
-#    uses: ./.github/workflows/cd.yml
-#    with:
-#      pr_title: ${{ needs.build-and-push.outputs.pr_title }}
-#    secrets:
-#      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Build and Push with Cache
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ steps.shatag.outputs.SHORT_SHA }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
