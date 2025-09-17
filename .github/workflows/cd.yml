@@ -7,6 +7,8 @@ on:
       - completed
     branches: [dev, main]
 
+run-name: "${{ github.event.pull_request.title }}"
+
 jobs:
   deploy:
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
