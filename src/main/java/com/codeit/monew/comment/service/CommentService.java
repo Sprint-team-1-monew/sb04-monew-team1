@@ -185,7 +185,7 @@ public class CommentService {
 
   public CommentLikeDto commentLike(UUID commentId, UUID requestUserId) {
 
-    log.debug("댓글 좋아요 등록 시작 : {}", commentId);
+    log.debug("댓글 좋아요 등록 시작 - 댓글 아이디 : {} , 좋아요 등록 요청자 아이디 : {}", commentId, requestUserId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
             Map.of("commentId", commentId)));
@@ -213,6 +213,8 @@ public class CommentService {
 
     publisher.publishEvent(new CommentLikeEvent(comment.getUser().getId(),comment.getId(),requestUserId));
 
+    log.debug("댓글 좋아요 등록 완료 - 댓글 아이디 : {} , 좋아요 등록 요청자 아이디 : {}", commentId, requestUserId);
+
     return new CommentLikeDto(
         commentLike.getId(),
         user.getId(),
@@ -228,7 +230,7 @@ public class CommentService {
   }
 
   public void deleteCommentLike(UUID commentId, UUID requestUserId) {
-
+    log.debug("댓글 좋아요 취소 시작 - 댓글 아이디 : {} , 좋아요 취소 요청자 아이디 : {}", commentId, requestUserId);
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new CommentException(CommentErrorCode.COMMENT_NOT_FOUND_EXCEPTION,
             Map.of("commentId", commentId)));
@@ -245,5 +247,7 @@ public class CommentService {
 
     comment.setLikeCount(comment.getLikeCount() - 1);
     commentRepository.save(comment);
+
+    log.debug("댓글 좋아요 취소 완료 - 댓글 아이디 : {} , 좋아요 취소 요청자 아이디 : {}", commentId, requestUserId);
   }
 }
