@@ -5,12 +5,11 @@ on:
     workflows: [ "CI" ]
     types:
       - completed
-    branches: ["dev"]
+    branches: [dev, main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.pull_requests != '' }}  # PR 없는 commit은 스킵
     env:
       ECS_CLUSTER: cluster-monew
       ECS_SERVICE: monew-task-service-13fqphcy
@@ -59,7 +58,6 @@ jobs:
   rename_workflow:
     runs-on: ubuntu-latest
     needs: deploy
-    if: ${{ github.event.workflow_run.pull_requests != '' }}  # PR 없는 commit은 스킵
     steps:
       - name: Set dynamic workflow run name
         run: |
