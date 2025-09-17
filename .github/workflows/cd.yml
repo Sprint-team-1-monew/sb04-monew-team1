@@ -1,12 +1,19 @@
-on:
-  workflow_dispatch:
-    inputs:
-      pr_title:
-        description: "Title of the PR to display in run-name"
-        required: true
+#on:
+#  workflow_dispatch:
+#    inputs:
+#      pr_title:
+#        description: "Title of the PR to display in run-name"
+#        required: true
 
-name: CD Workflow
+name: CD
 run-name: ${{ github.event.inputs.pr_title }}
+
+on:
+  workflow_run:
+    workflows: [ "CI" ]
+    types:
+      - completed
+    branches: [dev, main]
 
 jobs:
   deploy:

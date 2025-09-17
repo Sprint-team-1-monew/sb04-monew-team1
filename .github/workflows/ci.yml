@@ -62,11 +62,11 @@ jobs:
           -t $IMAGE:${{ steps.shatag.outputs.SHORT_SHA }} \
           --push .
 
-      - name: Trigger CD workflow
-        uses: peter-evans/workflow-dispatch@v1
-        with:
-          workflow: CD.yml
-          ref: dev
-          inputs:
-            pr_title: ${{ steps.pr_check.outputs.pr_title }}
+#      - name: Trigger CD workflow
+#        uses: peter-evans/workflow-dispatch@v1
+#        with:
+#          workflow: CD.yml
+#          ref: dev
+#          inputs:
+#            pr_title: ${{ steps.pr_check.outputs.pr_title }}
 
