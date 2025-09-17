@@ -1,12 +1,13 @@
 name: CD
-run-name: ${{ steps.read_pr_title.outputs.pr_title }}
+run-name: Deploy - ${{ github.event.inputs.pr_title }}
 
 on:
-  workflow_run:
-    workflows: [ "CI" ]
-    types:
-      - completed
-    branches: [dev, main]
+  workflow_dispatch:
+    inputs:
+      pr_title:
+        description: 'PR 제목'
+        required: true
+        type: string
 
 jobs:
   deploy:
@@ -20,17 +21,6 @@ jobs:
       AWS_REGION: ap-northeast-2
     steps:
       - uses: actions/checkout@v4
-
-      - name: Download PR title artifact
-        uses: actions/download-artifact@v3
-        with:
-          name: pr-title
-
-      - name: Read PR title
-        id: read_pr_title
-        run: |
-          PR_TITLE=$(cat pr_title.txt)
-          echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
 
       - name: AWS ECS Configure
         uses: aws-actions/configure-aws-credentials@v4
