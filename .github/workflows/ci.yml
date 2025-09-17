@@ -68,4 +68,5 @@ jobs:
           workflow: CD.yml
           ref: dev
           inputs:
-            pr_title: "${{ steps.pr_check.outputs.pr_title }}"
+            pr_title: ${{ steps.pr_check.outputs.pr_title }}
+
