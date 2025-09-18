@@ -40,4 +40,4 @@ naver:
 
 logging:
   level:
-    root: INFO
+    root: DEBUG
