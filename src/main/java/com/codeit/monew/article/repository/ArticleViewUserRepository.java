@@ -14,4 +14,6 @@ public interface ArticleViewUserRepository extends JpaRepository<ArticlesViewUse
   Optional<ArticlesViewUser> findByArticleAndUser(Article article, User user);
 
   int countByArticle(Article article);
+
+  void deleteByArticle(Article checkedArticle);
 }
