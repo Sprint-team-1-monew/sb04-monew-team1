@@ -28,7 +28,7 @@ import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.repeat.RepeatStatus;
 
 @ExtendWith(MockitoExtension.class)
-class ArticleBachTest {
+class ArticleBatchTest {
 
   @Mock private NaverNewsCollector naverNewsCollector;
   @Mock private ChoSunCollector choSunCollector;
