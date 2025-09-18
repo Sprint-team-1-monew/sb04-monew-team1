@@ -62,7 +62,7 @@ public class HanKyungCollectorTest {
   @DisplayName("한국 경제 테스트")
   void hankyung_saves_whenMatch_andNotDuplicated() throws Exception {
     // given
-    HankyungCollector spyCollector = spy(new HankyungCollector(
+    HankyungCollector collector = spy(new HankyungCollector(
         null, articleRepository, interestRepository, keywordRepository));
 
     Interest interest = Interest.builder().name("상속세").build();
@@ -76,8 +76,8 @@ public class HanKyungCollectorTest {
         now
     );
 
-    doReturn(List.of(item)).when(spyCollector).getAllRss();
-    doReturn("요약 상속세 포함").when(spyCollector).getArticleSummary(item.link());
+    doReturn(List.of(item)).when(collector).getAllRss();
+    doReturn("요약 상속세 포함").when(collector).getArticleSummary(item.link());
 
     when(articleRepository.findBySourceUrl(item.link())).thenReturn(Optional.empty());
 
@@ -85,7 +85,7 @@ public class HanKyungCollectorTest {
         .thenAnswer(inv -> inv.getArgument(0));
 
     // when
-    spyCollector.hankyungArticleCollect();
+    collector.hanKyungArticleCollect();
 
     // then — 호출 횟수만 검증(인자 무시)
     verify(articleRepository, times(1)).save(any(Article.class));
