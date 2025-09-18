@@ -20,7 +20,6 @@ import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
 import com.codeit.monew.user.exception.UserException;
 import com.codeit.monew.user.repository.UserRepository;
-import jakarta.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +27,7 @@ import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
@@ -173,6 +173,7 @@ public class NotificationService {
     return 0;
   }
 
+  @Transactional(readOnly = true)
   public CursorPageResponseNotificationDto getUnconfirmedNotifications(
       UUID userId,
       LocalDateTime after,
