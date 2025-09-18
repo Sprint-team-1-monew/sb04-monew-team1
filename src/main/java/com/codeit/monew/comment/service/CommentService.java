@@ -211,6 +211,7 @@ public class CommentService {
     comment.setLikeCount(comment.getLikeCount() + 1);
     commentRepository.save(comment);
 
+    //comment로 받기
     publisher.publishEvent(new CommentLikeEvent(comment.getUser().getId(),comment.getId(),requestUserId));
 
     log.debug("댓글 좋아요 등록 완료 - 댓글 아이디 : {} , 좋아요 등록 요청자 아이디 : {}", commentId, requestUserId);

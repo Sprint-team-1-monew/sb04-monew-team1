@@ -15,11 +15,11 @@ spring:
     open-in-view: false
   batch:
     jdbc:
-      initialize-schema: always
-#  sql:
-#    init:
-#      mode: always
-#      schema-locations: classpath:schema-postgres.sql
+      initialize-schema: NEVER
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-postgres.sql
 
 management:
   endpoints:
