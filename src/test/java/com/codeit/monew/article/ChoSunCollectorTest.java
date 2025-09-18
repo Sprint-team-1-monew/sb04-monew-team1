@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.reactive.function.client.WebClient;
 
 @ExtendWith(MockitoExtension.class)
-public class ChoSunColletorTest {
+public class ChoSunCollectorTest {
 
   @Mock
   private WebClient webClient;
