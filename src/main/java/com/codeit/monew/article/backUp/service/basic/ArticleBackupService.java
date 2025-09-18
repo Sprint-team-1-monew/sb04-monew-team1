@@ -1,19 +1,15 @@
-package com.codeit.monew.article.backUp.service;
+package com.codeit.monew.article.backUp.service.basic;
 
 import com.codeit.monew.article.backUp.dto.ArticleBackupDto;
 import com.codeit.monew.article.backUp.aws.BackupKeyMaker;
-import com.codeit.monew.article.backUp.repository.ArticleBackupRepository;
 import com.codeit.monew.article.entity.Article;
+import com.codeit.monew.article.repository.ArticleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -29,6 +25,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 import java.util.zip.GZIPOutputStream;
 
@@ -37,9 +34,7 @@ import java.util.zip.GZIPOutputStream;
 @Slf4j
 public class ArticleBackupService {
 
-    private static final int PAGE_SIZE = 1000;
-
-    private final ArticleBackupRepository articleBackupRepository;
+    private final ArticleRepository articleRepository;
     private final S3Client s3;
 
     @Value("${app.backup.bucket}")
@@ -60,29 +55,24 @@ public class ArticleBackupService {
 
         Path tmp = null;
         try {
-            tmp = Files.createTempFile("articleBackup",".jsonl.gz");
+            tmp = Files.createTempFile("articleBackup", ".jsonl.gz");
             System.out.println("tmp 경로 : " + tmp.toAbsolutePath());
             try (
                     OutputStream outOs = Files.newOutputStream(tmp, StandardOpenOption.WRITE);
                     GZIPOutputStream gzipOs = new GZIPOutputStream(outOs);
                     OutputStreamWriter outOsWriter = new OutputStreamWriter(gzipOs, StandardCharsets.UTF_8)
-            )
-            {
-                Pageable pageable = PageRequest.of(0, PAGE_SIZE, Sort.by("id").ascending()); // import 주의
-                Page<Article> page;
+            ) {
                 long total = 0;
 
-                do {
-                    page = articleBackupRepository.findAllInRange(start, end, pageable);
-                    for(Article article : page.getContent()) {
-                        ArticleBackupDto articleDto = ArticleBackupDto.from(article);
-                        outOsWriter.write(objectMapper.writeValueAsString(articleDto));
-                        outOsWriter.write('\n');
-                        total++;
-                    }
-                    outOsWriter.flush();
-                    pageable = page.nextPageable();
-                } while(!page.isLast());
+
+                List<Article> findListArticle = articleRepository.findAllByArticlePublishDateBetween(start, end);
+                for (Article article : findListArticle) {
+                    ArticleBackupDto articleDto = ArticleBackupDto.from(article);
+                    outOsWriter.write(objectMapper.writeValueAsString(articleDto));
+                    outOsWriter.write('\n');
+                    total++;
+                }
+                outOsWriter.flush();
 
                 log.info("백업 작성 종료됨, date={}, count={}, file={}", date, total, tmp);
 
@@ -96,8 +86,8 @@ public class ArticleBackupService {
                     .contentType("application/x-ndjson")
                     .contentEncoding("gzip")
                     .build();
-            try(InputStream input = Files.newInputStream(tmp)) { // s3에 올리는 로직
-                s3.putObject(putObject, RequestBody.fromInputStream(input,size));
+            try (InputStream input = Files.newInputStream(tmp)) { // s3에 올리는 로직
+                s3.putObject(putObject, RequestBody.fromInputStream(input, size));
             }
 
             s3.copyObject(c -> c
@@ -107,11 +97,11 @@ public class ArticleBackupService {
 
             log.info("백업 업로드됨, s3://{}/{}", bucket, backupKey);
 
-        } catch(Exception e) {
-          log.error("백업 실패함, date = {}", date, e);
-          throw new RuntimeException(e);
+        } catch (Exception e) {
+            log.error("백업 실패함, date = {}", date, e);
+            throw new RuntimeException(e);
         } finally {
-            if(tmp != null) {
+            if (tmp != null) {
                 try {
                     Files.deleteIfExists(tmp);
                 } catch (IOException ioException) {

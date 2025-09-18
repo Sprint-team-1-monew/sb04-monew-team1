@@ -2,6 +2,8 @@ package com.codeit.monew.article.repository;
 
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.interest.entity.Interest;
+
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -19,4 +21,11 @@ public interface ArticleRepository extends JpaRepository<Article, UUID>, Article
   List<String> findDistinctSources();
 
   int countBySource(String source);
+
+  /**
+   * 뉴스기사 복구 쿼리
+   */
+  boolean existsBySourceUrl(String sourceUrl);
+
+  List<Article> findAllByArticlePublishDateBetween(LocalDateTime dayStart, LocalDateTime dayEnd);
 }
