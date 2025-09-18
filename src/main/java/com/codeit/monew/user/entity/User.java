@@ -61,10 +61,6 @@ public class User extends BaseUpdatableEntity {
   @OneToMany(mappedBy = "user", cascade = {CascadeType.PERSIST, CascadeType.REMOVE}, fetch = FetchType.LAZY, orphanRemoval = true)
   private List<ArticlesViewUser> articlesViewUsers;
 
-  public void updateEmail(String email) {
-    this.email = email;
-  }
-
   public void updateNickname(String nickname) {
     this.nickname = nickname;
   }

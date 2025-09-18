@@ -3,10 +3,16 @@
   <property name="LOG_PATH" value="log"/>
   <property name="LOG_FILE_NAME" value="application.log"/>
 
+  <!-- Custom Highlight Converter -->
+  <conversionRule conversionWord="highlight" converterClass="com.jdh.sample.config.log.CustomHighlightConverter"/>
+  <property name="LOG_LEVEL_PATTERN" value="%highlight(%-5level)"/>
+
   <!-- dev/prod에서만 appender 정의 -->
   <springProfile name="dev,prod">
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-      <encoder><pattern>${LOG_PATTERN}</pattern></encoder>
+      <encoder>
+        <pattern>%boldMagenta(%d{yyyy-MM-dd HH:mm:ss.SSS}) [%thread] [${LOG_LEVEL_PATTERN}] %cyan(%logger{36}) - [%X{requestId}] [%X{requestHttpMethod}] [%X{requestPath}] %msg%n</pattern>
+      </encoder>
     </appender>
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
       <encoder><pattern>${LOG_PATTERN}</pattern></encoder>
@@ -20,7 +26,7 @@
 
   <!-- 개발 환경 -->
   <springProfile name="dev">
-    <root>
+    <root level="INFO">
       <appender-ref ref="CONSOLE"/>
       <appender-ref ref="FILE"/>
     </root>
@@ -28,7 +34,7 @@
 
   <!-- 운영 환경 -->
   <springProfile name="prod">
-    <root>
+    <root level="INFO">
       <appender-ref ref="FILE"/>
     </root>
   </springProfile>
@@ -37,4 +43,15 @@
   <springProfile name="test">
     <root level="OFF"/>
   </springProfile>
+
+  <!-- 색상이 적용된 콘솔 출력용 appender -->
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%boldMagenta(%d{MM-dd HH:mm:ss}) [${LOG_LEVEL_PATTERN}] %cyan(%logger{5}.%M) - %msg %n</pattern>
+    </encoder>
+  </appender>
+
+  <root level="INFO">
+    <appender-ref ref="STDOUT" />
+  </root>
 </configuration>
