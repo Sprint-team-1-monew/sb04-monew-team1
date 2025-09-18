@@ -1,7 +1,7 @@
-package com.codeit.monew.article.backUp.service.basic;
+package com.codeit.monew.article.backUp.service;
 
-import com.codeit.monew.article.backUp.dto.ArticleBackupDto;
 import com.codeit.monew.article.backUp.aws.BackupKeyMaker;
+import com.codeit.monew.article.backUp.dto.ArticleBackupDto;
 import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.repository.ArticleRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -57,13 +57,10 @@ public class ArticleBackupService {
         try {
             tmp = Files.createTempFile("articleBackup", ".jsonl.gz");
             System.out.println("tmp 경로 : " + tmp.toAbsolutePath());
-            try (
-                    OutputStream outOs = Files.newOutputStream(tmp, StandardOpenOption.WRITE);
+            try (OutputStream outOs = Files.newOutputStream(tmp, StandardOpenOption.WRITE);
                     GZIPOutputStream gzipOs = new GZIPOutputStream(outOs);
-                    OutputStreamWriter outOsWriter = new OutputStreamWriter(gzipOs, StandardCharsets.UTF_8)
-            ) {
+                    OutputStreamWriter outOsWriter = new OutputStreamWriter(gzipOs, StandardCharsets.UTF_8)) {
                 long total = 0;
-
 
                 List<Article> findListArticle = articleRepository.findAllByArticlePublishDateBetween(start, end);
                 for (Article article : findListArticle) {
