@@ -13,6 +13,14 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
     open-in-view: false
+  batch:
+    jdbc:
+      initialize-schema: NEVER
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-postgres.sql
+
 management:
   endpoints:
     web:
