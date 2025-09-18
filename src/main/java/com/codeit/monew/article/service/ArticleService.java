@@ -9,7 +9,9 @@ import com.codeit.monew.article.repository.ArticleViewUserRepository;
 import com.codeit.monew.article.response_dto.ArticleDto;
 import com.codeit.monew.article.response_dto.ArticleViewDto;
 import com.codeit.monew.article.response_dto.CursorPageResponseArticleDto;
+import com.codeit.monew.comment.entity.Comment;
 import com.codeit.monew.comment.repository.CommentRepository;
+import com.codeit.monew.comment.repository.likeRepository.CommentLikeRepository;
 import com.codeit.monew.exception.article.ArticleNotFoundException;
 import com.codeit.monew.user.entity.User;
 import com.codeit.monew.user.exception.UserErrorCode;
@@ -40,6 +42,7 @@ public class ArticleService {
   private final UserRepository userRepository;
   private final ArticleViewMapper articleViewMapper;
   private final CommentRepository commentRepository;
+  private final CommentLikeRepository commentLikeRepository;
 
   public void softDeleteArticle(UUID articleId) {
     log.info("기사 논리 삭제 시작 {}", articleId);
@@ -49,9 +52,17 @@ public class ArticleService {
     log.info("기사 논리 삭제 완료 {}", articleId);
   }
 
-  public void hardDeleteArticle(UUID articleId) {
+  public void hardDeleteArticle(UUID articleId)  {
     log.info("기사 물리 삭제 시작 {}", articleId);
-    Article checkedArticle =  checkArticle(articleId);
+    Article checkedArticle = checkArticle(articleId);
+
+    List<Comment> comments = commentRepository.findByArticle(checkedArticle);
+    comments.forEach(c -> {
+      commentLikeRepository.deleteByCommentId(c.getId()); // 손자(좋아요) 먼저
+      commentRepository.delete(c);                        // 자식(댓글) 삭제
+    });
+    articleViewUserRepository.deleteByArticle(checkedArticle);
+
     articleRepository.delete(checkedArticle);
     log.info("기사 물리 삭제 완료 {}", articleId);
   }
