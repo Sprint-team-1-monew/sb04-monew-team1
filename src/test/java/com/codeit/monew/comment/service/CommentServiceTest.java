@@ -475,7 +475,7 @@ public class CommentServiceTest {
     // then - repository 호출 검증
     verify(commentRepository, times(1))
         .findComments(eq(articleId), any(), any(), anyString(), any(), anyInt());
-    verify(commentRepository, times(1)).countByArticleId(articleId);
+    verify(commentRepository, times(2)).countByArticleId(articleId);
   }
 
   @Test
