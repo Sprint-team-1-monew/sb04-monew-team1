@@ -1,7 +1,6 @@
 package com.codeit.monew.article.response_dto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public record CursorPageResponseArticleDto(
@@ -11,5 +10,4 @@ public record CursorPageResponseArticleDto(
   int size,
   long totalElements,
   boolean hasNext
-)
-{}
+) {}

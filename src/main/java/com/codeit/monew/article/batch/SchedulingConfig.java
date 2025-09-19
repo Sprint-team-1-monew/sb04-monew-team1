@@ -6,5 +6,4 @@ import org.springframework.context.annotation.Configuration;
 @Configuration("articleSchedulingConfig")
 @EnableScheduling
 public class SchedulingConfig {
-
 }

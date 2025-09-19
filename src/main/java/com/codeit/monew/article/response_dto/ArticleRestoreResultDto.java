@@ -7,5 +7,4 @@ public record ArticleRestoreResultDto(
   LocalDateTime restoreDate,
   ArrayList<String> restoredArticleIds,
   long restoredArticleCount
-)
-{}
+) {}
