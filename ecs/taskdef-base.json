@@ -3,7 +3,7 @@
   "networkMode": "bridge",
   "requiresCompatibilities": ["EC2"],
   "cpu": "512",
-  "memory": "1024",
+  "memory": "768",
   "executionRoleArn": "arn:aws:iam::698251583389:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
@@ -11,7 +11,7 @@
       "image": "public.ecr.aws/w7n1o6b8/monew:latest",
       "essential": true,
       "cpu": 512,
-      "memory": 1024,
+      "memory": 768,
       "memoryReservation": 512,
       "environment": [],
       "environmentFiles": [
