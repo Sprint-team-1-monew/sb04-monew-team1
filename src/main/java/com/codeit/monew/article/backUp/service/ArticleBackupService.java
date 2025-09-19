@@ -44,7 +44,6 @@ public class ArticleBackupService {
             .registerModule(new JavaTimeModule())
             .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
 
-
     // 날짜에 따라 백업하는 메서드
     public void articleBackup(LocalDate date) {
         LocalDateTime start = date.atStartOfDay();
