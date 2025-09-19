@@ -13,5 +13,4 @@ public record ArticleDto(
   long commentCount,
   long viewCount,
   boolean viewedByMe
-)
-{}
+) {}
