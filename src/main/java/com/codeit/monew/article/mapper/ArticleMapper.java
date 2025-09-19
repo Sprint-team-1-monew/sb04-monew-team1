@@ -5,7 +5,6 @@ import com.codeit.monew.article.entity.Article;
 import com.codeit.monew.article.response_dto.ArticleDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring") // 스프링 빈으로 등록
 public interface ArticleMapper {
