@@ -38,9 +38,6 @@ import java.util.zip.GZIPInputStream;
 @RequiredArgsConstructor
 @Slf4j
 public class ArticleRestoreService {
-
-//    private static final int BATCH_SIZE = 1000;
-
     private final ArticleRepository articleRepository;
     private final InterestRepository interestRepository;
     private final S3Client s3;
@@ -125,18 +122,6 @@ public class ArticleRestoreService {
         return n;
     }
 
-//    private Interest resolveInterest(String interestId) { // interest에서 UUID인 id를 찾고 String으로 반환해줌
-//        if(interestId == null || interestId.isBlank()) {
-//            return null;
-//        }
-//
-//        try {
-//            return interestRepository.findById(UUID.fromString(interestId)).orElse(null);
-//        } catch(IllegalArgumentException e) {
-//            return null;
-//        }
-//    }
-
     @Transactional
     public List<Article> restoreOneDate(LocalDate date) {
         String key = BackupKeyMaker.keyFor(date);
@@ -204,5 +189,4 @@ public class ArticleRestoreService {
         } catch(Exception e) {}
         throw new IllegalArgumentException("DateTime 찾을 수 없음" + dateStr);
     }
-
 }
