@@ -196,6 +196,10 @@ public class ArticleService {
   private void updateArticleView(Article article){
     int articleViewCount = articleViewUserRepository.countByArticle(article);
     article.setArticleViewCount(articleViewCount);
+
+    long commentCount = commentRepository.countByArticleId(article.getId());
+    article.setArticleCommentCount(commentCount);
+
     articleRepository.save(article);
   }
 }
