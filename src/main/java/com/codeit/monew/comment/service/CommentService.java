@@ -26,6 +26,7 @@ import com.codeit.monew.user.repository.UserRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -139,6 +140,8 @@ public class CommentService {
         "댓글 목록 조회 시작 - articleID = {}, orderBy = {}, direction = {}, cursor = {}, after = {}, limit = {}, requestUserId = {}",
         articleId, orderBy, direction, cursor, after, limit, requestUserId);
 
+    updateCommentCount(articleId);
+
     // 첫 페이지 조회 시 cursor/after 처리
     LocalDateTime effectiveAfter = after;
     if (cursor == null || cursor.isEmpty()) {
@@ -251,4 +254,16 @@ public class CommentService {
 
     log.debug("댓글 좋아요 취소 완료 - 댓글 아이디 : {} , 좋아요 취소 요청자 아이디 : {}", commentId, requestUserId);
   }
+
+  private void updateCommentCount(UUID articleId){
+    long commentCount = commentRepository.countByArticleId(articleId);
+    Optional<Article> article = articleRepository.findById(articleId);
+
+    if (article.isPresent()) {
+      Article targetArticle = article.get();
+      targetArticle.setArticleCommentCount(commentCount);
+      articleRepository.save(targetArticle);
+    }
+  }
+
 }
