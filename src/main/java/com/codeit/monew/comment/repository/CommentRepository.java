@@ -17,4 +17,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID>, Comment
   Long countByArticleId(UUID id);
 
   List<Comment> findByArticle(Article checkedArticle);
+
+  long countByArticle_IdAndIsDeleted(UUID articleId, boolean isDeleted);
 }

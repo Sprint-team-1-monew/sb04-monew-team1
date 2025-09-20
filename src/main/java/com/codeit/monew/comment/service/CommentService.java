@@ -256,7 +256,7 @@ public class CommentService {
   }
 
   private void updateCommentCount(UUID articleId){
-    long commentCount = commentRepository.countByArticleId(articleId);
+    long commentCount = commentRepository.countByArticle_IdAndIsDeleted(articleId, false);
     Optional<Article> article = articleRepository.findById(articleId);
 
     if (article.isPresent()) {
