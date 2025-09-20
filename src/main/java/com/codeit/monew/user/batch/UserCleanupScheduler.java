@@ -18,7 +18,7 @@ public class UserCleanupScheduler {
   private final JobLauncher jobLauncher;
   private final Job userCleanupJob;
 
-  @Scheduled(cron = "0 * * * * *") // 매분 실행 (환경 변수로 변경 예정)
+  @Scheduled(cron = "0 0 0 * * *") // 매분 실행 (환경 변수로 변경 예정)
   public void runJob() throws Exception {
     try {
       JobParameters jobParameters = new JobParametersBuilder()

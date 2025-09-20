@@ -17,7 +17,7 @@ public class ArticleCleanupScheduler {
   private final JobLauncher jobLauncher;
   private final Job articleCleanUpJob;
 
-  @Scheduled(cron = "0 */3 * * * ?")
+  @Scheduled(cron = "0 0 0/2 * * ?")
   public void runJob() throws Exception {
     try {
       JobParameters jobParameters = new JobParametersBuilder()
