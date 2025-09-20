@@ -7,4 +7,3 @@ public record RssItem(
     String link,
     LocalDateTime publishedAt
 ) {}
-
