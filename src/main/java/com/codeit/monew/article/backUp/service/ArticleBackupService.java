@@ -103,14 +103,14 @@ public class ArticleBackupService {
             log.info("백업 업로드됨, s3://{}/{}", bucket, backupKey);
 
         } catch (Exception e) {
-            log.error("백업 실패함, date = {}", date, e);
+            log.info("백업 실패함, e = {}", e.getMessage());
             throw new RuntimeException(e);
         } finally {
             if (tmp != null) {
                 try {
                     Files.deleteIfExists(tmp);
                 } catch (IOException ioException) {
-
+                    log.info("백업 실패함, ioException = {}", ioException.getMessage());
                 }
             }
         } // 바깥쪽 try
