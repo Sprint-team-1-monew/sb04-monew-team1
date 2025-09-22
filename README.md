@@ -145,7 +145,7 @@
 ### 신동진
 - CI/CD 파이프라인 구축
   - 팀 단위로 깃 브랜치 전략을 함께 수립
-  - ci.yml 설계 및 구축
+  - ci.yml 설계 및 구축, cd.yml 기초 설계
   - Jacoco 테스트 커버리지 라이브러리 사용
   - Git Actions, Git Secret 활용
   - AWS
