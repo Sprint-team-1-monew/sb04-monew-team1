@@ -51,6 +51,7 @@ public class ArticleBackupService {
 
         String backupKey = BackupKeyMaker.keyFor(date);
         String tempKey = BackupKeyMaker.tempKeyFor(date, UUID.randomUUID().toString()); // UUID String
+        log.info("Backup key: {}", backupKey);
 
         Path tmp = null;
         try {
@@ -59,9 +60,12 @@ public class ArticleBackupService {
             try (OutputStream outOs = Files.newOutputStream(tmp, StandardOpenOption.WRITE);
                     GZIPOutputStream gzipOs = new GZIPOutputStream(outOs);
                     OutputStreamWriter outOsWriter = new OutputStreamWriter(gzipOs, StandardCharsets.UTF_8)) {
+                log.info("outOs: {}, gzipOs: {}, outOsWriter: {}", outOsWriter, gzipOs, outOsWriter);
+
                 long total = 0;
 
                 List<Article> findListArticle = articleRepository.findAllByArticlePublishDateBetween(start, end);
+                log.info("findListArticle size: {}", findListArticle.size());
                 for (Article article : findListArticle) {
                     ArticleBackupDto articleDto = ArticleBackupDto.from(article);
                     outOsWriter.write(objectMapper.writeValueAsString(articleDto));
@@ -69,6 +73,7 @@ public class ArticleBackupService {
                     total++;
                 }
                 outOsWriter.flush();
+                log.info("outOsWriter: {}", outOsWriter);
 
                 log.info("백업 작성 종료됨, date={}, count={}, file={}", date, total, tmp);
 
@@ -76,13 +81,17 @@ public class ArticleBackupService {
 
             // S3 임시 키 업로드하기
             long size = Files.size(tmp);
+            log.info("size: {}", size);
             PutObjectRequest putObject = PutObjectRequest.builder()
                     .bucket(bucket)
                     .key(tempKey)
                     .contentType("application/x-ndjson")
                     .contentEncoding("gzip")
                     .build();
+
+            log.info("putObject: {}", putObject);
             try (InputStream input = Files.newInputStream(tmp)) { // s3에 올리는 로직
+                log.info("input: {}", input);
                 s3.putObject(putObject, RequestBody.fromInputStream(input, size));
             }
 
