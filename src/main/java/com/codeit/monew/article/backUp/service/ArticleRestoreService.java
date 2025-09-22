@@ -172,7 +172,7 @@ public class ArticleRestoreService {
             return result;
         } catch (Exception e) {
             log.error("Restore {} failed", date, e);
-            throw new RuntimeException(e);
+            return result;
         }
     }
 
