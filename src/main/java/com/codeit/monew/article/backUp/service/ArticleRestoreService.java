@@ -96,7 +96,7 @@ public class ArticleRestoreService {
                 }
             }
             results.add(new ArticleRestoreResultDto(
-                    LocalDateTime.now(),
+                d.atStartOfDay(),
                     restoredIds,
                     (long) restoredIds.size()
             ));
