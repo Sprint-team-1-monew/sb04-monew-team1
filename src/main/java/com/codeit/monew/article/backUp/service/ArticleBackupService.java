@@ -95,6 +95,9 @@ public class ArticleBackupService {
                 s3.putObject(putObject, RequestBody.fromInputStream(input, size));
             }
 
+            log.info("tmp key: {}", tempKey);
+            log.info("backupKey: {}", backupKey);
+
             s3.copyObject(c -> c
                     .sourceBucket(bucket).sourceKey(tempKey)
                     .destinationBucket(bucket).destinationKey(backupKey));
