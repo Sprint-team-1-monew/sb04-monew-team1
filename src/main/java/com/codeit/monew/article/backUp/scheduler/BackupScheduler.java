@@ -18,7 +18,7 @@ public class BackupScheduler {
 
     // 초, 분, 시, 일, 월, 요일
     // 매일 0시, 전날의 데이터를 백업함
-    @Scheduled(cron = "0 */30 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 */5 * * * *", zone = "Asia/Seoul")
     public void backupArticle() {
         LocalDate target = LocalDate.now(ZoneId.of("Asia/Seoul")).minusDays(1);
         log.info("뉴스기사 백업 시작, {}", target);
